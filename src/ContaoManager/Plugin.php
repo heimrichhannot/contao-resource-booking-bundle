@@ -1,6 +1,6 @@
 <?php
 
-namespace ContaoManager;
+namespace HeimrichHannot\ResourceBookingBundle\ContaoManager;
 
 use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\ManagerPlugin\Bundle\BundlePluginInterface;

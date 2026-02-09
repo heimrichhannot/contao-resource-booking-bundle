@@ -8,6 +8,7 @@
         "ext-mbstring": "*",
         "contao/core-bundle": "^5.0",
         "doctrine/dbal": "^2.13 || ^3.0",
+        "heimrichhannot/contao-form-type-bundle": "^0.2.10",
         "psr/log": "^1.0 || ^2.0 || ^3.0",
         "symfony/config": "^6.0 || ^7.0",
         "symfony/dependency-injection": "^6.0 || ^7.0",
@@ -15,6 +16,7 @@
         "symfony/filesystem": "^6.0 || ^7.0",
         "symfony/http-foundation": "^6.0 || ^7.0",
         "symfony/http-kernel": "^6.0 || ^7.0",
+        "terminal42/notification_center": "^2.6",
         "twig/twig": "^3.0"
     },
     "require-dev": {

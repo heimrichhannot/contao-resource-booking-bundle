@@ -1,3 +1,6 @@
 <?php
 
-$dca = &$GLOBALS['TL_DCA']['tl_rb_resource'];
+use HeimrichHannot\ResourceBookingBundle\Contao\Table;
+
+$table = Table::RESOURCE->value;
+$dca = &$GLOBALS['TL_DCA'][$table];
