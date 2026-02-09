@@ -9,11 +9,13 @@ $ctable = Table::BOOKING->value;
 
 $dca = &$GLOBALS['TL_DCA'][$table];
 
-$dca['palettes']['default'] = '{title_legend},title,alias;{publishing_legend},published;';
-$dca['palettes']['__selector__'][] = 'requireOptIn';
-$dca['palettes']['__selector__'][] = 'requireApproval';
+$dca['palettes']['__selector__'] = ['requireOptIn', 'requireApproval'];
+$dca['palettes']['default'] = '{title_legend},title,alias;'
+    . '{opt_in_legend},requireOptIn;'
+    . '{approval_legend},requireApproval;'
+    . '{publishing_legend},published;';
 
-$dca['subpalettes']['requireOptIn'] = 'nc_optInRequest';
+$dca['subpalettes']['requireOptIn'] = 'nc_optInRequest,jumpToOptInCompleted';
 $dca['subpalettes']['requireApproval'] = 'nc_approvalRequest,nc_approvalGranted,nc_approvalRejected';
 
 $dca['config'] = [
@@ -58,6 +60,7 @@ $dca['list'] = [
             'href' => 'act=copy',
             'icon' => 'copy.svg',
         ],
+        'toggle' => 'toggle',
         'delete' => [
             'href' => 'act=delete',
             'icon' => 'delete.svg',
@@ -72,17 +75,28 @@ $dca['list'] = [
 
 $fieldRequire = [
     'exclude' => true,
+    'filter' => true,
     'inputType' => 'checkbox',
-    'eval' => ['tl_class' => 'w50'],
+    'default' => false,
+    'eval' => ['tl_class' => 'w50 cbx', 'submitOnChange' => true],
     'sql' => ['type' => 'boolean', 'default' => false],
 ];
 
 $fieldNotification = [
     'exclude' => true,
-    'filter' => true,
+    'filter' => false,
     'inputType' => 'select',
-    'eval' => ['includeBlankOption' => true, 'chosen' => true, 'tl_class' => 'clr w50'],
+    'eval' => ['includeBlankOption' => true, 'chosen' => true, 'tl_class' => 'w50'],
     'sql' => ['type' => 'integer', 'default' => 0, 'unsigned' => true],
+];
+
+$fieldJumpTo = [
+    'inputType' => 'pageTree',
+    'foreignKey' => 'tl_page.title',
+    'default' => 0,
+    'eval' => ['fieldType' => 'radio', 'tl_class' => 'w50'],
+    'relation' => ['type' => 'belongsTo', 'load' => 'lazy'],
+    'sql' => ['type' => 'integer', 'unsigned' => true, 'default' => 0, 'notnull' => true],
 ];
 
 $dca['fields'] = [
@@ -121,4 +135,5 @@ $dca['fields'] = [
     'nc_approvalRequest' => $fieldNotification,
     'nc_approvalGranted' => $fieldNotification,
     'nc_approvalRejected' => $fieldNotification,
+    'jumpToOptInCompleted' => $fieldJumpTo,
 ];

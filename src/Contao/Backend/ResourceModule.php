@@ -12,8 +12,8 @@ readonly class ResourceModule
     public static function getTables(): array
     {
         return [
-            Table::RESOURCE->value,
             Table::RESOURCE_ARCHIVE->value,
+            Table::RESOURCE->value,
         ];
     }
 }

@@ -12,8 +12,8 @@ readonly class BookingModule
     public static function getTables(): array
     {
         return [
-            Table::BOOKING->value,
             Table::BOOKING_ARCHIVE->value,
+            Table::BOOKING->value,
         ];
     }
 }

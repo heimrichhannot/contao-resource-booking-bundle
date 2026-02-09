@@ -10,12 +10,11 @@ use HeimrichHannot\ResourceBookingBundle\Model\ResourceModel;
 /*
  * Backend modules
  */
-$GLOBALS['BE_MOD'][BookingModule::CATEGORY][BookingModule::NAME] = [
-    'tables' => BookingModule::getTables(),
-];
-
 $GLOBALS['BE_MOD'][ResourceModule::CATEGORY][ResourceModule::NAME] = [
     'tables' => ResourceModule::getTables(),
+];
+$GLOBALS['BE_MOD'][BookingModule::CATEGORY][BookingModule::NAME] = [
+    'tables' => BookingModule::getTables(),
 ];
 
 /*
