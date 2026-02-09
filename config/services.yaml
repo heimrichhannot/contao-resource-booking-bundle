@@ -1,0 +1,11 @@
+services:
+    _defaults:
+        autowire:      true
+        autoconfigure: true
+
+    Psr\Log\LoggerInterface:
+        alias: monolog.logger.contao
+
+    HeimrichHannot\ResourceBookingBundle\:
+        resource: ../src
+        exclude: ../src/{Contao,ContaoManager,DependencyInjection,Event,Model}
