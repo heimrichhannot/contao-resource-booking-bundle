@@ -98,6 +98,10 @@ class StepResult
         return new self(self::ERROR, $message);
     }
 
+    /**
+     * Not to be used by steps. Only available in the pipeline.
+     * @internal For internal use only.
+     */
     public static function done(array $meta = [], ?string $message = null): self
     {
         return new self(self::DONE, $message, $meta);
