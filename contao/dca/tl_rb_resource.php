@@ -1,14 +1,15 @@
 <?php
 
 use Contao\DC_Table;
-use HeimrichHannot\ResourceBookingBundle\Contao\Table;
+use HeimrichHannot\ResourceBookingBundle\Model\ResourceArchiveModel;
+use HeimrichHannot\ResourceBookingBundle\Model\ResourceModel;
 
-$table = Table::RESOURCE->value;
-$ptable = Table::RESOURCE_ARCHIVE->value;
+$table = ResourceModel::getTable();
+$ptable = ResourceArchiveModel::getTable();
 
 $dca = &$GLOBALS['TL_DCA'][$table];
 
-$dca['palettes']['default'] = '{title_legend},title;{publishing_legend},published;';
+$dca['palettes']['default'] = '{title_legend},title,quantity;{publishing_legend},published;';
 
 $dca['config'] = [
     'dataContainer' => DC_Table::class,
@@ -84,5 +85,13 @@ $dca['fields'] = [
         'inputType' => 'text',
         'eval' => ['mandatory' => true, 'tl_class' => 'w50'],
         'sql' => "varchar(255) NOT NULL default ''",
+    ],
+    'quantity' => [
+        'exclude' => true,
+        'sorting' => true,
+        'filter' => true,
+        'inputType' => 'text',
+        'eval' => ['mandatory' => true, 'tl_class' => 'w50', 'rgxp' => 'natural'],
+        'sql' => ['type' => 'integer', 'default' => 1],
     ],
 ];

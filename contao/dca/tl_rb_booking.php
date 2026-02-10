@@ -1,10 +1,11 @@
 <?php
 
 use Contao\DC_Table;
-use HeimrichHannot\ResourceBookingBundle\Contao\Table;
+use HeimrichHannot\ResourceBookingBundle\Model\BookingArchiveModel;
+use HeimrichHannot\ResourceBookingBundle\Model\BookingModel;
 
-$table = Table::BOOKING->value;
-$ptable = Table::BOOKING_ARCHIVE->value;
+$table = BookingModel::getTable();
+$ptable = BookingArchiveModel::getTable();
 
 $dca = &$GLOBALS['TL_DCA'][$table];
 
