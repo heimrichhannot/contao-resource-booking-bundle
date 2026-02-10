@@ -15,7 +15,8 @@
   "author": "Eric Gesemann <e.gesemann@heimrich-hannot.de>",
   "type": "module",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development vite build --watch --mode development",
+    "dev": "cross-env NODE_ENV=development vite build --mode development",
+    "watch": "cross-env NODE_ENV=development vite build --mode development --watch",
     "build": "vite build",
     "preview": "vite preview"
   },
