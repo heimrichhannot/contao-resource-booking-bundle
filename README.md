@@ -1,8 +1,30 @@
-# Resource Booking for Contao
+# Resource Booking 📦🗂️ for Contao
 
-This bundle provides resource booking capabilities for Contao.
+This bundle provides resource booking capabilities for the Contao Open-Source CMS.
 
----
+> [!NOTE]
+> This bundle is in early development.
+>  
+> We welcome any feedback and contributions and will release a stable version soon.
+
+## Installation
+
+Install the bundle via Composer:
+
+```bash
+composer require heimrichhannot/contao-resource-booking-bundle
+```
+
+Requires **Contao ^5.3** and **PHP ^8.2**.
+
+## Features
+- Create and manage resources and their availability
+- Book resources for specific time slots
+- Create custom forms in the form generator to collect any information you
+  need when booking resources
+- Display a calendar with bookings and available resources
+- Send notifications for bookings and cancellations
+
 
 ## Developers
 
