@@ -80,14 +80,17 @@ class BookingFormController extends AbstractContentElementController
         $template->set('mount_id', $mountId);
 
         $jsRoot = [
-            'selectors' => [
-                'form' => "#{$formHelper->formId}",
-                'mount' => "#{$mountId}",
+            'api' => [
+                'bookings' => $this->generateUrl('huh_rb.bookings', ['bookingArchive' => $bookingArchive->id]),
             ],
             'ref' => [
                 'booking_archive' => $bookingArchive->id,
                 'form' => $formModel->id,
                 'resource_archives' => \array_keys($resourceArchives),
+            ],
+            'selectors' => [
+                'form' => "#{$formHelper->formId}",
+                'mount' => "#{$mountId}",
             ],
         ];
         $template->set('js_root_data', $jsRoot);

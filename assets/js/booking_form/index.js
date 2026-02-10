@@ -1,4 +1,4 @@
-import { parseRootConfig } from "./config.js";
+import { parseConfig } from "./config.js";
 import BookingForm from "./BookingForm.js";
 
 export default function init(options = {}) {
@@ -21,7 +21,7 @@ export function initRoot($root) {
     const raw = $root.dataset.huhrbRoot;
     if (!raw) throw new Error(`Missing required data attribute: data-huhrb-root on element`);
 
-    const config = parseRootConfig(raw);
+    const config = parseConfig(raw, "$root.dataset.huhrbRoot");
 
     new BookingForm($root, config);
 }
