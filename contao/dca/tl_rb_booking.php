@@ -101,34 +101,23 @@ $dca['fields'] = [
         'eval' => ['mandatory' => true, 'tl_class' => 'w50', 'rgxp' => 'email'],
         'sql' => ['type' => 'string', 'length' => 255, 'default' => ''],
     ],
-    'optInToken' => [
+    'data' => [
         'exclude' => true,
         'search' => false,
         'sorting' => false,
-        'flag' => 1,
-        'inputType' => 'text',
-        'eval' => ['tl_class' => 'w100 clr'],
-        'sql' => ['type' => 'string', 'length' => 128, 'default' => ''],
+        'sql' => ['type' => 'blob', 'default' => null, 'notnull' => false],
     ],
-    'optInExpiresAt' => [
+    'internalState' => [
+        'exclude' => true,
+        'search' => false,
+        'sorting' => false,
+        'sql' => ['type' => 'blob', 'default' => null, 'notnull' => false],
+    ],
+    'expiresAt' => [
         'exclude' => true,
         'sorting' => true,
         'inputType' => 'text',
         'eval' => ['rgxp' => 'datim', 'datepicker' => true, 'tl_class' => 'w50 wizard'],
-        'sql' => ['type' => 'string', 'length' => 10, 'default' => ''],
-    ],
-    'optedInAt' => [
-        'exclude' => true,
-        'sorting' => true,
-        'inputType' => 'text',
-        'eval' => ['rgxp' => 'datim', 'datepicker' => true, 'tl_class' => 'w50 wizard'],
-        'sql' => ['type' => 'string', 'length' => 10, 'default' => ''],
-    ],
-    'reviewedAt' => [
-        'exclude' => true,
-        'sorting' => true,
-        'inputType' => 'text',
-        'eval' => ['rgxp' => 'datim', 'datepicker' => true, 'tl_class' => 'w50 wizard'],
-        'sql' => ['type' => 'string', 'length' => 10, 'default' => ''],
+        'sql' => ['type' => 'string', 'length' => 10, 'default' => null, 'notnull' => false],
     ],
 ];

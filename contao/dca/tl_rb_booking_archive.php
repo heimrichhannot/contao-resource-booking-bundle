@@ -9,14 +9,14 @@ $ctable = Table::BOOKING->value;
 
 $dca = &$GLOBALS['TL_DCA'][$table];
 
-$dca['palettes']['__selector__'] = ['requireOptIn', 'requireApproval'];
+$dca['palettes']['__selector__'] = ['requireOptIn', 'requireReview'];
 $dca['palettes']['default'] = '{title_legend},title,alias;'
     . '{opt_in_legend},requireOptIn;'
-    . '{approval_legend},requireApproval;'
+    . '{approval_legend},requireReview;'
     . '{publishing_legend},published;';
 
 $dca['subpalettes']['requireOptIn'] = 'nc_optInRequest,jumpToOptInCompleted';
-$dca['subpalettes']['requireApproval'] = 'nc_approvalRequest,nc_approvalGranted,nc_approvalRejected';
+$dca['subpalettes']['requireReview'] = 'nc_approvalRequest,nc_approvalGranted,nc_approvalRejected';
 
 $dca['config'] = [
     'dataContainer' => DC_Table::class,
@@ -82,11 +82,11 @@ $fieldRequire = [
     'sql' => ['type' => 'boolean', 'default' => false],
 ];
 
-$fieldNotification = [
+$fieldNotification = static fn (bool $mandatory): array => [
     'exclude' => true,
     'filter' => false,
     'inputType' => 'select',
-    'eval' => ['includeBlankOption' => true, 'chosen' => true, 'tl_class' => 'w50'],
+    'eval' => ['includeBlankOption' => true, 'chosen' => true, 'tl_class' => 'w50', 'mandatory' => $mandatory],
     'sql' => ['type' => 'integer', 'default' => 0, 'unsigned' => true],
 ];
 
@@ -130,10 +130,10 @@ $dca['fields'] = [
         'sql' => ['type' => 'boolean', 'default' => false],
     ],
     'requireOptIn' => $fieldRequire,
-    'requireApproval' => $fieldRequire,
-    'nc_optInRequest' => $fieldNotification,
-    'nc_approvalRequest' => $fieldNotification,
-    'nc_approvalGranted' => $fieldNotification,
-    'nc_approvalRejected' => $fieldNotification,
+    'requireReview' => $fieldRequire,
+    'nc_optInRequest' => $fieldNotification(mandatory: false),
+    'nc_reviewRequest' => $fieldNotification(mandatory: true),
+    'nc_reviewApproval' => $fieldNotification(mandatory: true),
+    'nc_reviewRejection' => $fieldNotification(mandatory: true),
     'jumpToOptInCompleted' => $fieldJumpTo,
 ];

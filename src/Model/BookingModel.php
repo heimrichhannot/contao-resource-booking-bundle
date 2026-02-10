@@ -3,8 +3,20 @@
 namespace HeimrichHannot\ResourceBookingBundle\Model;
 
 use Contao\Model;
+use Contao\StringUtil;
 use HeimrichHannot\ResourceBookingBundle\Contao\Table;
 
+/**
+ * @property int $id
+ * @property int $pid
+ * @property int $tstamp
+ * @property string $status
+ * @property string $title
+ * @property string $email
+ * @property array|string|null $data
+ * @property array|string|null $internalState
+ * @property int $expiresAt
+ */
 class BookingModel extends Model
 {
     protected static $strTable = Table::BOOKING->value;
@@ -16,6 +28,8 @@ class BookingModel extends Model
             'status' => $this->status,
             'tstamp' => $this->tstamp,
             'row'    => $this->row(),
+            'data'   => $this->getData(),
+            'state'  => $this->getInternalState(),
         ], \JSON_THROW_ON_ERROR));
     }
 
@@ -28,5 +42,62 @@ class BookingModel extends Model
         }
 
         return null;
+    }
+
+    public function getData(): array
+    {
+        if (!\is_array($this->data)) {
+            $this->data = StringUtil::deserialize($this->data, true);
+        }
+
+        return $this->data;
+    }
+
+    public function getInternalState(): array
+    {
+        return $this->internalState();
+    }
+
+    private function &internalState(): array
+    {
+        if (!\is_array($this->internalState)) {
+            $this->internalState = StringUtil::deserialize($this->internalState, true);
+        }
+
+        return $this->internalState;
+    }
+
+    public function get(string $key, mixed $default = null): mixed
+    {
+        return $this->internalState()[$key] ?? $default;
+    }
+
+    public function set(string $key, mixed $value): self
+    {
+        $this->internalState()[$key] = $value;
+
+        return $this;
+    }
+
+    public function collectTokens(): array
+    {
+        $tokens = ['email' => $this->email];
+
+        foreach ($this->row() as $key => $value) {
+            if (\in_array($key, ['data', 'internalState'], true)) {
+                continue;
+            }
+            $tokens['booking_' . $key] = $value;
+        }
+
+        foreach ($this->getInternalState() as $key => $value) {
+            $tokens['internal_' . $key] = $value;
+        }
+
+        foreach ($this->getData() as $key => $value) {
+            $tokens['data_' . $key] = $value;
+        }
+
+        return $tokens;
     }
 }

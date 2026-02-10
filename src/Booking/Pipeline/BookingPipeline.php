@@ -76,6 +76,10 @@ readonly class BookingPipeline
                     continue;
                 }
 
+                if ($result->isFinish()) {
+                    break;
+                }
+
                 return $result;
             }
 

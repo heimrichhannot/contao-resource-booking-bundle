@@ -9,7 +9,7 @@ use HeimrichHannot\ResourceBookingBundle\Booking\StepResult;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingModel;
 use Terminal42\NotificationCenterBundle\NotificationCenter;
 
-class OptInStep implements BookingStepInterface
+readonly class OptInStep implements BookingStepInterface
 {
     public static function getName(): string
     {
@@ -17,8 +17,8 @@ class OptInStep implements BookingStepInterface
     }
 
     public function __construct(
-        private readonly OptIn $optIn,
-        private readonly NotificationCenter $nc,
+        private OptIn              $optIn,
+        private NotificationCenter $nc,
     ) {}
 
     public function getPriority(): int
@@ -28,15 +28,11 @@ class OptInStep implements BookingStepInterface
 
     public function applies(BookingModel $booking): bool
     {
-        if (!$archive = $booking->getArchive()) {
-            return false;
+        if ($booking->status === self::getName()) {
+            return true;
         }
 
-        if (!$archive->requireOptIn) {
-            return false;
-        }
-
-        if ($booking->optedInAt) {
+        if (!$booking->getArchive()?->requireOptIn) {
             return false;
         }
 
@@ -45,41 +41,39 @@ class OptInStep implements BookingStepInterface
 
     public function process(BookingModel $booking): StepResult
     {
-        if (!($email = $booking->email) || !Validator::isEmail($email)) {
-            return StepResult::error('Invalid email address');
+        if ($booking->get('optedInAt')) {
+            return $this->toNext($booking);
         }
 
-        if ($booking->optedInAt)
+        $booking->status = self::getName();
+
+        if ($booking->get('optInToken') && $booking->get('optInExpiresAt') < time())
         {
-            if ($booking->state === self::getName()) {
-                $booking->state = null;
+            $booking->set('optInExpiresAt', null);
+            $booking->set('optInToken', null);
+        }
+
+        if (!$booking->get('optInToken'))
+        {
+            if (!($email = $booking->email) || !Validator::isEmail($email)) {
+                return StepResult::error('Invalid email address');
             }
 
-            $booking->optInToken = null;
-            $booking->save();
-
-            return StepResult::next();
-        }
-
-        if ($booking->optInToken && $booking->optInExpiresAt < time())
-        {
-            $booking->optInToken = null;
-            $booking->optInExpiresAt = null;
-            $booking->save();
-        }
-
-        if (!$booking->optInToken)
-        {
             $token = $this->createOptInToken($booking, $email);
             $this->sendOptInRequestEmail($booking, $email, $token);
 
-            $booking->optInToken = $token->getIdentifier();
-            $booking->optInExpiresAt = time() + 3600; // 1 hour
-            $booking->state = self::getName();
+            $expiresAt = \time() + 3600; // 1 hour
+
+            $booking->status = self::getName();
+            $booking->set('optInToken', $token->getIdentifier());
+            $booking->set('optInExpiresAt', $expiresAt);
+            $booking->set('reservationExpiresAt', $expiresAt);
             $booking->save();
 
             return StepResult::wait('Sent opt-in request email.');
         }
+
+        $booking->save();
 
         return StepResult::wait('Waiting for opt-in confirmation.');
     }
@@ -102,7 +96,10 @@ class OptInStep implements BookingStepInterface
             return;
         }
 
-        $receipts = $this->nc->sendNotification($archive->nc_optInRequest, []);
+        $ncTokens = $booking->collectTokens();
+        $ncTokens['token'] = $token->getIdentifier();
+
+        $receipts = $this->nc->sendNotification($archive->nc_optInRequest, $ncTokens);
 
         if ($receipts->count() < 1) {
             $this->sendBasicOptInRequestEmail($token);
@@ -113,5 +110,54 @@ class OptInStep implements BookingStepInterface
     {
         // todo
         // $token->send('Confirm Opt-In', 'text');
+    }
+
+    private function toNext(BookingModel $booking): StepResult
+    {
+        if ($booking->status === self::getName()) {
+            $booking->status = null;
+        }
+
+        $booking->set('optInToken', null);
+        $booking->save();
+
+        return StepResult::next();
+    }
+
+    /**
+     * @param string $tokenId
+     * @return BookingModel
+     * @throws \InvalidArgumentException if the token ID is invalid or the token is not related to a booking
+     * @throws \RuntimeException if the token is already confirmed or the related booking is not found
+     */
+    public function confirmToken(string $tokenId): BookingModel
+    {
+        if (!$token = $this->optIn->find($tokenId)) {
+            throw new \InvalidArgumentException('Invalid token ID');
+        }
+
+        if ($token->isConfirmed()) {
+            throw new \RuntimeException('Token already confirmed');
+        }
+
+        $related = $token->getRelatedRecords();
+
+        if (!\count($related) || \key($related) !== BookingModel::getTable()) {
+            throw new \InvalidArgumentException('Invalid token');
+        }
+
+        if (!$booking = BookingModel::findById(\current($related))) {
+            throw new \RuntimeException('Booking not found');
+        }
+
+        $token->confirm();
+
+        $booking->set('expiresAt', null);
+        $booking->set('optedInAt', \time());
+        $booking->set('optInExpiresAt', null);
+        $booking->set('optInToken', null);
+        $booking->save();
+
+        return $booking;
     }
 }

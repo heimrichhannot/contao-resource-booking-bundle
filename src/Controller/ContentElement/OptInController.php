@@ -6,12 +6,10 @@ namespace HeimrichHannot\ResourceBookingBundle\Controller\ContentElement;
 use Contao\ContentModel;
 use Contao\CoreBundle\Controller\ContentElement\AbstractContentElementController;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsContentElement;
-use Contao\CoreBundle\OptIn\OptIn;
 use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\CoreBundle\Twig\FragmentTemplate;
 use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\BookingPipeline;
-use HeimrichHannot\ResourceBookingBundle\Contao\Table;
-use HeimrichHannot\ResourceBookingBundle\Model\BookingModel;
+use HeimrichHannot\ResourceBookingBundle\Booking\Step\OptInStep;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -22,8 +20,8 @@ class OptInController extends AbstractContentElementController
 
     public function __construct(
         private readonly BookingPipeline $pipeline,
-        private readonly OptIn $optIn,
-        private readonly ScopeMatcher $scopeMatcher,
+        private readonly OptInStep       $optInStep,
+        private readonly ScopeMatcher    $scopeMatcher,
     ) {}
 
     protected function getResponse(FragmentTemplate $template, ContentModel $model, Request $request): Response
@@ -44,50 +42,21 @@ class OptInController extends AbstractContentElementController
             return new Response();
         }
 
+        $template->set('confirmed', false);
+
         try
         {
-            $check = $this->validateToken($tokenId);
-
+            $check = $this->optInStep->confirmToken($tokenId);
             $template->set('confirmed', true);
 
-            $this->pipeline->process($check);
+            $result = $this->pipeline->process($check);
+            $template->set('pipeline', $result);
         }
         catch (\Throwable $e)
         {
-            $template->set('confirmed', false);
             $template->set('error', $e->getMessage());
         }
 
         return $template->getResponse();
-    }
-
-    private function validateToken(string $tokenId): BookingModel
-    {
-        if (!$token = $this->optIn->find($tokenId)) {
-            throw new \InvalidArgumentException('Invalid token ID');
-        }
-
-        if ($token->isConfirmed()) {
-            throw new \RuntimeException('Token already confirmed');
-        }
-
-        $related = $token->getRelatedRecords();
-
-        if (!\count($related) || \key($related) !== Table::BOOKING->value) {
-            throw new \InvalidArgumentException('Invalid token');
-        }
-
-        if (!$model = BookingModel::findById(\current($related))) {
-            throw new \RuntimeException('Booking not found');
-        }
-
-        $token->confirm();
-
-        $model->optedInAt = time();
-        $model->optInExpiresAt = null;
-        $model->optInToken = null;
-        $model->save();
-
-        return $model;
     }
 }
