@@ -81,7 +81,14 @@ class BookingFormController extends AbstractContentElementController
 
         $jsRoot = [
             'api' => [
-                'bookings' => $this->generateUrl('huh_rb.bookings', ['bookingArchive' => $bookingArchive->id]),
+                'bookings' => $this->generateUrl(
+                    route: 'huh_rb.bookings',
+                    parameters: ['bookingArchive' => $bookingArchive->id]
+                ),
+                'resources' => $this->generateUrl(
+                    route: 'huh_rb.resources',
+                    parameters: ['csvIds' => \implode(',', array_keys($resourceArchives))]
+                ),
             ],
             'ref' => [
                 'booking_archive' => $bookingArchive->id,

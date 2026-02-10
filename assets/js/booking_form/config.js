@@ -73,9 +73,11 @@ export function validateConfig(config, contextPath = "config") {
 
     // api
     assertObject(config.api, `${contextPath}.api`);
-    assertNoUnknownKeys(config.api, ["bookings"], `${contextPath}.api`);
+    assertNoUnknownKeys(config.api, ["bookings", "resources"], `${contextPath}.api`);
     if (!("bookings" in config.api)) throw new TypeError(`${contextPath}.api.bookings is required`);
+    if (!("resources" in config.api)) throw new TypeError(`${contextPath}.api.resources is required`);
     assertString(config.api.bookings, `${contextPath}.api.bookings`);
+    assertString(config.api.resources, `${contextPath}.api.resources`);
 
     // selectors
     if (!("selectors" in config)) throw new TypeError(`${contextPath}.selectors is required`);

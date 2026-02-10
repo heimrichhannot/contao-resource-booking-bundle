@@ -1,3 +1,5 @@
 huh_flare:
     resource: "@HeimrichHannotResourceBookingBundle/src/Controller/"
     type:     annotation
+    requirements:
+        csvIds: '\d+(?:,\d+)*'

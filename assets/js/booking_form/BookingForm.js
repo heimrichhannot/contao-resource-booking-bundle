@@ -20,6 +20,8 @@ export default class BookingForm {
 
         if (!this.$form) throw new Error(`Form not found via selector "${config.selectors.form}"`);
         if (!this.$mount) throw new Error(`Mount not found via selector "${config.selectors.mount}"`);
+
+        $root.bookingForm = this;
     }
 
     init() {

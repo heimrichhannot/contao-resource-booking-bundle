@@ -11,9 +11,18 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/_huh_rb', name: 'huh_rb.')]
 class ApiController extends AbstractController
 {
-    #[Route('/calendar/{bookingArchive}/bookings', name: 'bookings', methods: ['GET'])]
-    public function getBookings(Request $request, BookingArchiveModel $bookingArchive): Response
+    #[Route('/bookings/{bookingArchive}', name: 'bookings', methods: ['GET'])]
+    public function getBookings(Request $request, int $bookingArchive): Response
     {
         return $this->json([]);
+    }
+
+    #[Route('/resources/{csvIds}', name: 'resources', methods: ['GET'])]
+    public function getResources(Request $request, string $csvIds): Response
+    {
+        $ids = \array_map('intval', array_filter(explode(',', $csvIds), 'strlen'));
+        return $this->json([
+            'ids' => $ids,
+        ]);
     }
 }
