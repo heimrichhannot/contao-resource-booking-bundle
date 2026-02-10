@@ -1,0 +1,8 @@
+framework:
+    assets:
+        packages:
+            huh_rb_build:
+                json_manifest_path: '%kernel.project_dir%/vendor/heimrichhannot/contao-resource-booking-bundle/public/build/manifest.json'
+                base_path: '/bundles/heimrichhannotresourcebooking/build'
+            huh_rb:
+                base_path: '/bundles/heimrichhannotresourcebooking'

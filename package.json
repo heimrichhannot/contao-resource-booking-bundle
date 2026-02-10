@@ -1,0 +1,29 @@
+{
+  "name": "@huh/rb",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Resource booking for the Contao CMS.",
+  "homepage": "https://github.com/heimrichhannot/contao-resource-booking-bundle#readme",
+  "bugs": {
+    "url": "https://github.com/heimrichhannot/contao-resource-booking-bundle/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/heimrichhannot/contao-resource-booking-bundle.git"
+  },
+  "license": "MIT",
+  "author": "Eric Gesemann <e.gesemann@heimrich-hannot.de>",
+  "type": "module",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development vite build --watch --mode development",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "vite": "^7.3.1"
+  },
+  "dependencies": {
+    "air-datepicker": "^3.6.0"
+  }
+}

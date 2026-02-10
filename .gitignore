@@ -22,6 +22,8 @@ yarn.lock
 /build
 public/js/entrypoints.json
 public/js/manifest.json
+.vite/
+!public/build/**/node_modules
 ###< Node/Yarn/Encore ###
 
 ###> PHPDocumentator ###
