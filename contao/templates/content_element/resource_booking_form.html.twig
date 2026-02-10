@@ -1,0 +1,47 @@
+{% extends "@Contao/content_element/_base.html.twig" %}
+
+{% set root_attrs = attrs()
+    .set('data-huhrb-root', js_root_data|json_encode)
+    .mergeWith(root_attrs|default)
+%}
+
+{% set mount_attrs = attrs()
+    .set('id', mount_id)
+    .mergeWith(mount_attrs|default)
+%}
+
+{% block content %}
+    {% if disabled|default(false) %}
+        {{ block('disabled') }}
+    {% else %}
+        {{ block('enabled') }}
+    {% endif %}
+{% endblock %}
+
+{% block disabled %}
+    <p>Aktuell ist keine Buchung möglich.</p>
+{% endblock %}
+
+{% block enabled %}
+    <div {{ root_attrs }}>
+
+        <div {{ mount_attrs }}></div>
+
+        {{ include('@Contao/huh_rb/haste_form.html.twig', {
+            data: haste_form,
+            submit: 'Buchen'
+        }) }}
+
+    </div>
+{% endblock %}
+
+{% block script %}
+    {% set import = { "imports": {
+        "@huh/rb": asset('assets/js/index.js', 'huh_rb_build'),
+    } } %}
+    {% add 'huh_rb_form' to head %}
+
+        <script type="importmap">{{ import|json_encode|raw }}</script>
+        <script type="module">import "@huh/rb";</script>
+    {% endadd %}
+{% endblock %}

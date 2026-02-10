@@ -6,6 +6,7 @@
     "require": {
         "php": "^8.2",
         "ext-mbstring": "*",
+        "codefog/contao-haste": "^5.3",
         "contao/core-bundle": "^5.0",
         "doctrine/dbal": "^2.13 || ^3.0",
         "heimrichhannot/contao-form-type-bundle": "^0.2.10",

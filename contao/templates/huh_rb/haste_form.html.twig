@@ -1,0 +1,27 @@
+{% set form_attrs = attrs()
+    .set('action', data.action)
+    .set('id', data.formId)
+    .set('method', data.method)
+    .set('enctype', data.enctype)
+    .mergeWith(form_attrs|default)
+%}
+
+{% block form %}
+    <form {{ form_attrs }}>
+        {% block widgets %}
+            {{ data.hidden|raw }}
+            {{ data.fields|raw }}
+            {#
+                // for reference:
+                {% for widget in data.widgets %}
+                    {{ widget.parse|raw }}
+                {% endfor %}
+            #}
+        {% endblock %}
+        {% block submit_button %}
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">{{ submit ?? 'Submit' }}</button>
+            </div>
+        {% endblock %}
+    </form>
+{% endblock %}
