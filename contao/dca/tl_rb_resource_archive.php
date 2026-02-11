@@ -72,6 +72,9 @@ $dca['list'] = [
 $dca['fields'] = [
     'id' => [
         'sql' => 'int(10) unsigned NOT NULL auto_increment',
+        'huh_rb' => [
+            'api' => true,
+        ],
     ],
     'tstamp' => [
         'sql' => "int(10) unsigned NOT NULL default '0'",
@@ -84,12 +87,18 @@ $dca['fields'] = [
         'inputType' => 'text',
         'eval' => ['mandatory' => true, 'tl_class' => 'w50'],
         'sql' => ['type' => 'string', 'length' => 255, 'default' => ''],
+        'huh_rb' => [
+            'api' => true,
+        ],
     ],
     'alias' => [
         'search' => true,
         'inputType' => 'text',
         'eval' => ['rgxp' => 'alias', 'doNotCopy' => true, 'unique' => true, 'maxlength' => 255, 'tl_class' => 'w50'],
-        'sql' => "varchar(255) BINARY NOT NULL default ''"
+        'sql' => "varchar(255) BINARY NOT NULL default ''",
+        'huh_rb' => [
+            'api' => true,
+        ],
     ],
     'published' => [
         'toggle' => true,

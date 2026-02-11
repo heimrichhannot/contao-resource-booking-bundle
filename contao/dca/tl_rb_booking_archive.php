@@ -11,7 +11,7 @@ $ctable = BookingModel::getTable();
 $dca = &$GLOBALS['TL_DCA'][$table];
 
 $dca['palettes']['__selector__'] = ['requireOptIn', 'requireReview'];
-$dca['palettes']['default'] = '{title_legend},title,alias;'
+$dca['palettes']['default'] = '{title_legend},title,type,alias;'
     . '{opt_in_legend},requireOptIn;'
     . '{approval_legend},requireReview;'
     . '{publishing_legend},published;';
@@ -103,9 +103,27 @@ $fieldJumpTo = [
 $dca['fields'] = [
     'id' => [
         'sql' => 'int(10) unsigned NOT NULL auto_increment',
+        'huh_rb' => [
+            'api' => true,
+        ],
     ],
     'tstamp' => [
         'sql' => "int(10) unsigned NOT NULL default '0'",
+    ],
+    'type' => [
+        'exclude' => true,
+        'filter' => true,
+        'sorting' => true,
+        'flag' => DataContainer::SORT_ASC,
+        'inputType' => 'select',
+        'eval' => [
+            'includeBlankOption' => true,
+            'tl_class' => 'w50',
+            'multiple' => false,
+            'chosen' => true,
+            'submitOnChange' => true,
+        ],
+        'sql' => ['type' => 'string', 'length' => 64, 'default' => '']
     ],
     'title' => [
         'exclude' => true,
@@ -115,12 +133,18 @@ $dca['fields'] = [
         'inputType' => 'text',
         'eval' => ['mandatory' => true, 'tl_class' => 'w50'],
         'sql' => ['type' => 'string', 'length' => 255, 'default' => ''],
+        'huh_rb' => [
+            'api' => true,
+        ],
     ],
     'alias' => [
         'search' => true,
         'inputType' => 'text',
         'eval' => ['rgxp' => 'alias', 'doNotCopy' => true, 'unique' => true, 'maxlength' => 255, 'tl_class' => 'w50'],
-        'sql' => "varchar(255) BINARY NOT NULL default ''"
+        'sql' => "varchar(255) BINARY NOT NULL default ''",
+        'huh_rb' => [
+            'api' => true,
+        ],
     ],
     'published' => [
         'toggle' => true,

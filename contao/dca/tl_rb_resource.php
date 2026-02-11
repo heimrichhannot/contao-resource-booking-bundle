@@ -66,6 +66,9 @@ $dca['list'] = [
 $dca['fields'] = [
     'id' => [
         'sql' => 'int(10) unsigned NOT NULL auto_increment',
+        'huh_rb' => [
+            'api' => true,
+        ],
     ],
     'pid' => [
         'foreignKey' => "$ptable.title",
@@ -73,6 +76,9 @@ $dca['fields'] = [
         'search' => true,
         'sql' => "int(10) unsigned NOT NULL default '0'",
         'relation' => ['type' => 'belongsTo', 'load' => 'eager'],
+        'huh_rb' => [
+            'api' => 'archive_id',
+        ],
     ],
     'tstamp' => [
         'sql' => "int(10) unsigned NOT NULL default '0'",
@@ -85,6 +91,9 @@ $dca['fields'] = [
         'inputType' => 'text',
         'eval' => ['mandatory' => true, 'tl_class' => 'w50'],
         'sql' => "varchar(255) NOT NULL default ''",
+        'huh_rb' => [
+            'api' => true,
+        ],
     ],
     'quantity' => [
         'exclude' => true,
@@ -93,5 +102,8 @@ $dca['fields'] = [
         'inputType' => 'text',
         'eval' => ['mandatory' => true, 'tl_class' => 'w50', 'rgxp' => 'natural'],
         'sql' => ['type' => 'integer', 'default' => 1],
+        'huh_rb' => [
+            'api' => true,
+        ],
     ],
 ];
