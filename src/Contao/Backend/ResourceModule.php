@@ -6,7 +6,7 @@ use HeimrichHannot\ResourceBookingBundle\Contao\Table;
 
 readonly class ResourceModule
 {
-    public const CATEGORY = 'content';
+    public const CATEGORY = 'huh_rb';
     public const NAME = 'rb_resource';
 
     public static function getTables(): array

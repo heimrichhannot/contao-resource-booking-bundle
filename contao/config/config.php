@@ -10,6 +10,10 @@ use HeimrichHannot\ResourceBookingBundle\Model\ResourceModel;
 /*
  * Backend modules
  */
+$GLOBALS['BE_MOD'] = \array_slice($GLOBALS['BE_MOD'], 0, 1, true)
+    + ['huh_rb' => []]
+    + \array_slice($GLOBALS['BE_MOD'], 1, null, true);
+
 $GLOBALS['BE_MOD'][ResourceModule::CATEGORY][ResourceModule::NAME] = [
     'tables' => ResourceModule::getTables(),
 ];

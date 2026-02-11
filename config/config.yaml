@@ -6,3 +6,8 @@ framework:
                 base_path: '/bundles/heimrichhannotresourcebooking/build'
             huh_rb:
                 base_path: '/bundles/heimrichhannotresourcebooking'
+
+contao:
+    backend:
+        custom_css:
+            - 'bundles/heimrichhannotresourcebooking/backend/huh-rb.css'
