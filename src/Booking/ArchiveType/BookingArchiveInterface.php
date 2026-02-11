@@ -8,4 +8,6 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 interface BookingArchiveInterface
 {
     public static function getName(): string;
+
+    public static function getTemplate(): string;
 }

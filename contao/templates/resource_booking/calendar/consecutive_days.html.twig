@@ -1,0 +1,18 @@
+{% extends '@Contao/resource_booking/calendar.html.twig' %}
+
+{% block mount %}
+{% endblock %}
+
+{% block script %}
+    <script type="module">
+        import { bookingForms } from '@huh/rb';
+        import { ConsecutiveDays } from '@huh/rb/calendar'
+
+        const bookingForm = bookingForms.find('{{ mount_id }}');
+        if (!bookingForm) {
+            throw new Error('Booking form not found');
+        }
+
+        const cal = await ConsecutiveDays.mount(bookingForm);
+    </script>
+{% endblock %}

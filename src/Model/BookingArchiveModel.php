@@ -8,6 +8,7 @@ use HeimrichHannot\ResourceBookingBundle\Contao\Table;
 /**
  * @property int $id
  * @property int $tstamp
+ * @property string $type
  * @property string $title
  * @property string $alias
  * @property bool $published

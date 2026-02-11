@@ -2,12 +2,6 @@
 
 namespace HeimrichHannot\ResourceBookingBundle\Booking\ArchiveType;
 
-class ConsecutiveDaysArchiveType implements BookingArchiveInterface
+class ConsecutiveDaysArchiveType extends AbstractBookingArchiveType
 {
-    public const NAME = 'consecutive_days';
-
-    public static function getName(): string
-    {
-        return self::NAME;
-    }
 }

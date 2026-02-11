@@ -5,7 +5,7 @@ namespace HeimrichHannot\ResourceBookingBundle\Registry;
 use HeimrichHannot\ResourceBookingBundle\Booking\ArchiveType\BookingArchiveInterface;
 use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 
-class ArchiveTypeRegistry
+class BookingArchiveTypeRegistry
 {
     private array $archiveTypes;
 
@@ -54,6 +54,10 @@ class ArchiveTypeRegistry
         return $this->resolve();
     }
 
+    /**
+     * @param string $alias
+     * @return BookingArchiveInterface|null
+     */
     public function get(string $alias): ?BookingArchiveInterface
     {
         if (!$alias) {

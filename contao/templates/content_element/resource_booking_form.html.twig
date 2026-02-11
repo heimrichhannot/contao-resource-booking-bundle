@@ -10,6 +10,13 @@
     .mergeWith(mount_attrs|default)
 %}
 
+{% set importmap = {
+    "imports": {
+        "@huh/rb": asset('assets/js/index.js', 'huh_rb_build'),
+        "@huh/rb/calendar": asset('assets/js/calendar.js', 'huh_rb_build'),
+    }
+} %}
+
 {% block content %}
     {% if disabled|default(false) %}
         {{ block('disabled') }}
@@ -25,9 +32,12 @@
 {% block enabled %}
     <div {{ root_attrs }}>
 
-        <div {{ mount_attrs }}></div>
+        {{ include(mount_template, {
+            attributes: mount_attrs,
+            mount_id: mount_id,
+        }) }}
 
-        {{ include('@Contao/huh_rb/haste_form.html.twig', {
+        {{ include('@Contao/resource_booking/haste_form.html.twig', {
             data: haste_form,
             submit: 'Buchen'
         }) }}
@@ -36,12 +46,9 @@
 {% endblock %}
 
 {% block script %}
-    {% set import = { "imports": {
-        "@huh/rb": asset('assets/js/index.js', 'huh_rb_build'),
-    } } %}
     {% add 'huh_rb_form' to head %}
 
-        <script type="importmap">{{ import|json_encode|raw }}</script>
+        <script type="importmap">{{ importmap|json_encode|raw }}</script>
         <script type="module">import "@huh/rb";</script>
     {% endadd %}
 {% endblock %}

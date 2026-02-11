@@ -3,16 +3,19 @@
 namespace HeimrichHannot\ResourceBookingBundle\EventListener\DataContainer;
 
 use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
+use Contao\CoreBundle\Twig\Finder\FinderFactory;
 use Contao\DataContainer;
+use HeimrichHannot\ResourceBookingBundle\Booking\ArchiveType\BookingArchiveInterface;
 use HeimrichHannot\ResourceBookingBundle\Contao\Table;
-use HeimrichHannot\ResourceBookingBundle\Registry\ArchiveTypeRegistry;
+use HeimrichHannot\ResourceBookingBundle\Registry\BookingArchiveTypeRegistry;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 readonly class BookingArchiveListener
 {
     public function __construct(
-        private ArchiveTypeRegistry $typeRegistry,
-        private TranslatorInterface $translator,
+        private BookingArchiveTypeRegistry $typeRegistry,
+        private FinderFactory              $finderFactory,
+        private TranslatorInterface        $translator,
     ) {}
 
     #[AsCallback(Table::BOOKING_ARCHIVE->value, 'fields.type.options')]
@@ -25,6 +28,31 @@ readonly class BookingArchiveListener
         }
 
         return $options;
+    }
+
+    #[AsCallback(Table::BOOKING_ARCHIVE->value, 'fields.customTpl.options')]
+    public function getCustomTplOptions(?DataContainer $dc = null): array
+    {
+        if (!$dc || !$dc->id) {
+            return [];
+        }
+
+        $record = $dc->getCurrentRecord();
+        if (!$type = $record['type'] ?? null) {
+            return [];
+        }
+
+        /** @var BookingArchiveInterface $archiveType */
+        if (!$archiveType = $this->typeRegistry->get($type)) {
+            return [];
+        }
+
+        return $this->finderFactory
+            ->create()
+            ->identifier($archiveType->getTemplate())
+            ->extension('html.twig')
+            ->withVariants()
+            ->asTemplateOptions();
     }
 
     #[AsCallback(Table::BOOKING_ARCHIVE->value, 'list.label.label')]

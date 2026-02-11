@@ -12,9 +12,11 @@ use Contao\CoreBundle\Twig\FragmentTemplate;
 use Contao\FormModel;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingArchiveModel;
 use HeimrichHannot\ResourceBookingBundle\Model\ResourceArchiveModel;
+use HeimrichHannot\ResourceBookingBundle\Registry\BookingArchiveTypeRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 #[AsContentElement(self::TYPE, category: 'includes', template: 'content_element/resource_booking_form')]
 class BookingFormController extends AbstractContentElementController
@@ -22,7 +24,8 @@ class BookingFormController extends AbstractContentElementController
     public const TYPE = 'huh_rb_form';
 
     public function __construct(
-        private readonly ScopeMatcher $scopeMatcher,
+        private readonly BookingArchiveTypeRegistry $bookingArchiveTypeRegistry,
+        private readonly ScopeMatcher               $scopeMatcher,
     ) {}
 
     protected function getResponse(FragmentTemplate $template, ContentModel $model, Request $request): Response
@@ -47,6 +50,10 @@ class BookingFormController extends AbstractContentElementController
         $bookingArchive = $model->getRelated('rb_bookingArchive');
         if (!$bookingArchive instanceof BookingArchiveModel) {
             throw new NotFoundHttpException('No booking archive found');
+        }
+
+        if (!$bookingArchiveType = $this->bookingArchiveTypeRegistry->get((string) $bookingArchive->type)) {
+            throw new NotFoundHttpException('No booking archive type found');
         }
 
         if (!$resourceArchivesRaw = $model->getRelated('rb_resourceArchives')) {
@@ -87,7 +94,6 @@ class BookingFormController extends AbstractContentElementController
                 ),
                 'resources' => $this->generateUrl(
                     route: 'huh_rb.resources',
-                    parameters: ['csvIds' => \implode(',', array_keys($resourceArchives))]
                 ),
             ],
             'ref' => [
@@ -98,9 +104,14 @@ class BookingFormController extends AbstractContentElementController
             'selectors' => [
                 'form' => "#{$formHelper->formId}",
                 'mount' => "#{$mountId}",
+                'dataInput' => "#{$formHelper->formId} input[name=rb_data]",
             ],
         ];
         $template->set('js_root_data', $jsRoot);
+
+        $mountTemplate = $bookingArchive->customTpl ?: $bookingArchiveType->getTemplate();
+        $mountTemplate = "@Contao/$mountTemplate.html.twig";
+        $template->set('mount_template', $mountTemplate);
 
         return $template->getResponse();
     }
@@ -117,5 +128,17 @@ class BookingFormController extends AbstractContentElementController
                 'inputType' => 'hidden',
                 'value' => \json_encode(['demo' => 'example'], \JSON_THROW_ON_ERROR),
             ], ArrayPosition::first());
+    }
+
+    protected function generateUrl(
+        string $route,
+        array  $parameters = [],
+        int    $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH
+    ): string {
+        $url = parent::generateUrl($route, $parameters, $referenceType);
+        if (\str_starts_with($url, '/preview.php/')) {
+            $url = \substr($url, \strlen('/preview.php'));
+        }
+        return $url;
     }
 }

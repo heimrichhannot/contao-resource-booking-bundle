@@ -14,6 +14,7 @@ $dca['palettes']['__selector__'] = ['requireOptIn', 'requireReview'];
 $dca['palettes']['default'] = '{title_legend},title,type,alias;'
     . '{opt_in_legend},requireOptIn;'
     . '{approval_legend},requireReview;'
+    . '{template_legend},customTpl;'
     . '{publishing_legend},published;';
 
 $dca['subpalettes']['requireOptIn'] = 'nc_optInRequest,jumpToOptInCompleted';
@@ -153,6 +154,18 @@ $dca['fields'] = [
         'inputType' => 'checkbox',
         'eval' => ['doNotCopy' => true],
         'sql' => ['type' => 'boolean', 'default' => false],
+    ],
+    'customTpl' => [
+        'exclude' => true,
+        'inputType' => 'select',
+        'eval' => ['chosen' => true, 'tl_class' => 'w50'],
+        'sql' => [
+            'type' => 'string',
+            'length' => 128,
+            'default' => '',
+            'notnull' => true,
+            'customSchemaOptions' => ['collation' => 'ascii_bin'],
+        ],
     ],
     'requireOptIn' => $fieldRequire,
     'requireReview' => $fieldRequire,
