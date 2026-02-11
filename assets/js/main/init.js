@@ -1,5 +1,6 @@
 import { parseConfig } from "./config.js";
 import BookingForm from "./BookingForm.js";
+import BookingFormRegistry from "./BookingFormRegistry.js";
 
 export default function init(options = {}) {
     const {
@@ -7,15 +8,17 @@ export default function init(options = {}) {
     } = options;
 
     const $$roots = document.querySelectorAll(rootSelector);
+    const bookingFormLocator = new BookingFormRegistry();
 
     for (const $root of $$roots) {
-        initRoot($root);
+        const bookingForm = initBookingForm($root);
+        bookingFormLocator.register(bookingForm);
     }
 
-    console.debug('[HuH RB] Booking forms initialized.')
+    return bookingFormLocator;
 }
 
-export function initRoot($root) {
+export function initBookingForm($root) {
     if (!$root) return;
 
     const raw = $root.dataset.huhrbRoot;
@@ -23,5 +26,5 @@ export function initRoot($root) {
 
     const config = parseConfig(raw, "$root.dataset.huhrbRoot");
 
-    new BookingForm($root, config);
+    return new BookingForm($root, config);
 }

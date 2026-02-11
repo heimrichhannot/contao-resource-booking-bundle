@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "@huh/rb": ["assets/js/index.js"],
+            "@huh/rb/calendar": ["assets/js/calendar.js"]
+        }
+    },
+    "include": [
+        "assets/js/**/*.js",
+        "contao/templates/**/*.html.twig"
+    ]
+}

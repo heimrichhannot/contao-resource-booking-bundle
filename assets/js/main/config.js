@@ -38,6 +38,7 @@ function assertNoUnknownKeys(obj, allowedKeys, path) {
 /**
  * @typedef {object} api
  * @property {string} bookings
+ * @property {string} resources
  */
 
 /**
@@ -51,6 +52,7 @@ function assertNoUnknownKeys(obj, allowedKeys, path) {
  * @typedef {object} selectors
  * @property {string} form
  * @property {string} mount
+ * @property {string} dataInput
  */
 
 /**
@@ -82,12 +84,14 @@ export function validateConfig(config, contextPath = "config") {
     // selectors
     if (!("selectors" in config)) throw new TypeError(`${contextPath}.selectors is required`);
     assertObject(config.selectors, `${contextPath}.selectors`);
-    assertNoUnknownKeys(config.selectors, ["form", "mount"], `${contextPath}.selectors`);
+    assertNoUnknownKeys(config.selectors, ["form", "mount", "dataInput"], `${contextPath}.selectors`);
 
     if (!("form" in config.selectors)) throw new TypeError(`${contextPath}.selectors.form is required`);
     if (!("mount" in config.selectors)) throw new TypeError(`${contextPath}.selectors.mount is required`);
+    if (!("dataInput" in config.selectors)) throw new TypeError(`${contextPath}.selectors.dataInput is required`);
     assertString(config.selectors.form, `${contextPath}.selectors.form`);
     assertString(config.selectors.mount, `${contextPath}.selectors.mount`);
+    assertString(config.selectors.dataInput, `${contextPath}.selectors.dataInput`);
 
     // ref
     if (!("ref" in config)) throw new TypeError(`${contextPath}.ref is required`);

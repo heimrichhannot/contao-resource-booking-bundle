@@ -2,7 +2,6 @@ import { defineConfig } from "vite";
 import { normalize, resolve } from "node:path";
 import fs from "node:fs";
 
-const entryPath = normalize(resolve(__dirname, "assets/js/index.js"));
 const outDir = "public/build";
 
 function symfonyManifestPlugin({ outDir }) {
@@ -34,6 +33,12 @@ function symfonyManifestPlugin({ outDir }) {
 export default defineConfig(({ mode }) => {
     const isDevBuild = mode === "development";
     return {
+        resolve: {
+            alias: {
+                "@huh/rb": resolve(__dirname, "assets/js/index.js"),
+                "@huh/rb/calendar": resolve(__dirname, "assets/js/calendar.js"),
+            },
+        },
         publicDir: false,
         build: {
             outDir,
@@ -43,9 +48,11 @@ export default defineConfig(({ mode }) => {
             minify: isDevBuild ? false : "esbuild",
             target: "es2018",
             lib: {
-                entry: entryPath,
+                entry: [
+                    normalize(resolve(__dirname, "assets/js/index.js")),
+                    normalize(resolve(__dirname, "assets/js/calendar.js")),
+                ],
                 formats: ["es"],
-                fileName: () => "js/index.js",
             },
             rollupOptions: {
                 preserveEntrySignatures: "exports-only",

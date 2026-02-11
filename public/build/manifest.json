@@ -1,8 +1,11 @@
 {
-  "assets/js/booking_form/BookingForm.js": "js/booking_form/BookingForm-CmaDs9FE.js",
-  "assets/js/booking_form/config.js": "js/booking_form/config-DWo-dxwM.js",
-  "assets/js/booking_form/index.js": "js/booking_form/index-BUNvDT8C.js",
-  "assets/js/index.js": "js/index-gnKBesdO.js",
+  "assets/js/calendar.js": "js/calendar-CVkHbrNd.js",
+  "assets/js/calendar/ConsecutiveDays.js": "js/calendar/ConsecutiveDays-kIdsNB0u.js",
+  "assets/js/index.js": "js/index-3xgjQ5lz.js",
+  "assets/js/main/BookingForm.js": "js/main/BookingForm-Dp6eYz57.js",
+  "assets/js/main/BookingFormRegistry.js": "js/main/BookingFormRegistry-DvS5h1qd.js",
+  "assets/js/main/config.js": "js/main/config-CkxhDHMd.js",
+  "assets/js/main/init.js": "js/main/init-DiEubIBY.js",
   "node_modules/air-datepicker/air-datepicker.js": "js/node_modules/air-datepicker/air-datepicker-CkeeFvtV.js",
   "style.css": "assets/rb-C4eX_GUS.css"
 }

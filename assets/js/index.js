@@ -1,5 +1,5 @@
-import initBookingForms from './booking_form/index.js';
+import initBookingForms from './main/init.js';
 
 console.debug('Welcome from Heimrich & Hannot Resource Booking');
 
-initBookingForms();
+export const bookingForms = initBookingForms();
