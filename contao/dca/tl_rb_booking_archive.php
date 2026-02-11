@@ -17,7 +17,7 @@ $dca['palettes']['default'] = '{title_legend},title,type,alias;'
     . '{publishing_legend},published;';
 
 $dca['subpalettes']['requireOptIn'] = 'nc_optInRequest,jumpToOptInCompleted';
-$dca['subpalettes']['requireReview'] = 'nc_approvalRequest,nc_approvalGranted,nc_approvalRejected';
+$dca['subpalettes']['requireReview'] = 'nc_reviewRequest,nc_reviewApproval,nc_reviewRejection';
 
 $dca['config'] = [
     'dataContainer' => DC_Table::class,
