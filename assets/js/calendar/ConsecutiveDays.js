@@ -15,18 +15,16 @@ export default class ConsecutiveDays {
     }
 
     async init() {
-        const elm = document.createElement("div");
-        elm.innerHTML = "Lädt...";
-        this.$mount.appendChild(elm);
+        this.bookingForm.isLoading = true;
 
         await Promise.all([
             this.loadResources(),
             this.loadBookings(),
         ]);
 
-        elm.remove();
-
         await this.render();
+
+        this.bookingForm.isLoading = false;
     }
 
     async render() {

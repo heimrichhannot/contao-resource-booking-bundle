@@ -1,6 +1,11 @@
 import { validateConfig } from "./config.js";
 
 export default class BookingForm {
+    #isLoading = false;
+    #templates = {};
+
+    loadingClassName = 'rb-loading';
+
     /**
      * @param {HTMLElement} $root
      * @param {BookingFormConfig} config
@@ -19,7 +24,33 @@ export default class BookingForm {
         if (!this.$mount) throw new Error(`Mount not found via selector "${config.selectors.mount}"`);
         if (!this.$dataInput) throw new Error(`Data input not found via selector "${config.selectors.dataInput}"`);
 
+        for (const template of this.$root.querySelectorAll('[data-rb-template]')) {
+            this.#templates[template.dataset.rbTemplate] = template.cloneNode(true);
+        }
+
         $root.bookingForm = this;
+    }
+
+    get isLoading() {
+        return this.#isLoading;
+    }
+
+    set isLoading(isLoading) {
+        this.#isLoading = isLoading;
+        this.$form.disabled = isLoading;
+        this.$root.classList.toggle(this.loadingClassName, isLoading);
+    }
+
+    getTemplate(name) {
+        return this.#templates[name] || null;
+    }
+
+    setTemplate(name, html) {
+        this.#templates[name] = html;
+    }
+
+    hasTemplate(name) {
+        return this.#templates.hasOwnProperty(name);
     }
 
     async fetch(url, options = {}) {

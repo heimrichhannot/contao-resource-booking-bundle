@@ -2,6 +2,7 @@
 
 {% set root_attrs = attrs()
     .set('data-huhrb-root', js_root_data|json_encode)
+    .set('class', 'rb-loading')
     .mergeWith(root_attrs|default)
 %}
 
@@ -32,15 +33,31 @@
 {% block enabled %}
     <div {{ root_attrs }}>
 
-        {{ include(mount_template, {
-            attributes: mount_attrs,
-            mount_id: mount_id,
-        }) }}
+        <div data-rb-if="(!loading)" class="rb-main">
+            {{ include(mount_template, {
+                attributes: mount_attrs,
+                mount_id: mount_id,
+            }) }}
 
-        {{ include('@Contao/resource_booking/haste_form.html.twig', {
-            data: haste_form,
-            submit: 'Buchen'
-        }) }}
+            {{ include('@Contao/resource_booking/haste_form.html.twig', {
+                data: haste_form,
+                submit: 'Buchen'
+            }) }}
+        </div>
+
+        <div data-rb-if="(loading)" class="rb-loader">
+            {% block loading %}
+                {{ 'messages.loading_form'|trans({}, 'huh_rb')|raw }}
+            {% endblock %}
+        </div>
+
+        <template data-rb-template="error">
+            {% block template_error %}
+                <p>Fehler beim Buchen.</p>
+            {% endblock %}
+        </template>
+
+        {% block root_end %}{% endblock %}
 
     </div>
 {% endblock %}
@@ -48,6 +65,7 @@
 {% block script %}
     {% add 'huh_rb_form' to head %}
 
+        <link rel="stylesheet" href="{{ asset('style.css', 'huh_rb_build') }}">
         <script type="importmap">{{ importmap|json_encode|raw }}</script>
         <script type="module">import "@huh/rb";</script>
     {% endadd %}

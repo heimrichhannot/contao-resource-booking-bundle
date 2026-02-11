@@ -1,2 +1,5 @@
 booking_archive_types:
     consecutive_days: 'Ganze konsekutive Tage buchen'
+
+messages:
+    loading_form: 'Formular wird geladen&hellip;'

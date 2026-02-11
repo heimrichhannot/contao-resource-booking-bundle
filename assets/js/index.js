@@ -1,3 +1,4 @@
+import '../scss/main.scss';
 import initBookingForms from './main/init.js';
 
 console.debug('Welcome from Heimrich & Hannot Resource Booking');

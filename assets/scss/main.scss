@@ -1,0 +1,9 @@
+[data-huhrb-root] {
+    &:not(.rb-loading) {
+        [data-rb-if*="(loading)"] { display: none; }
+    }
+
+    &.rb-loading {
+        [data-rb-if*="(!loading)"] { display: none; }
+    }
+}
