@@ -2,13 +2,13 @@
 {% trans_default_domain 'huh_rb' %}
 
 {% set root_attrs = attrs()
-    .set('data-huhrb-root', js_root_data|json_encode)
+    .set('data-huhrb-root', js_root_data|default|json_encode)
     .set('class', 'rb-loading')
     .mergeWith(root_attrs|default)
 %}
 
 {% set mount_attrs = attrs()
-    .set('id', mount_id)
+    .set('id', mount_id|default)
     .set('class', 'rb-calendar')
     .mergeWith(mount_attrs|default)
 %}
@@ -52,7 +52,7 @@
             {{ include(mount_template, {
                 attributes: mount_attrs,
                 mount_id: mount_id,
-                booking_archives: booking_archives,
+                booking_archive: booking_archive,
                 resource_archives: resource_archives,
                 resources: resources,
             }) }}

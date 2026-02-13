@@ -10,4 +10,6 @@ interface BookingArchiveInterface
     public static function getName(): string;
 
     public static function getTemplate(): string;
+
+    public static function hasTime(): bool;
 }

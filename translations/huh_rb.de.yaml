@@ -27,3 +27,10 @@ messages:
     form_loading: 'Formular wird geladen &hellip;'
     form_loading_error: 'Fehler beim Laden des Formulars.'
     general_error: 'Ein Fehler ist aufgetreten.'
+    datetime_incorrect: 'Ungültiges Datum oder Zeitformat'
+
+status:
+    approved: 'Genehmigt'
+    pending: 'Wird Verarbeitet'
+    rejected: 'Abgelehnt'
+    irresolute: 'Unentschieden'

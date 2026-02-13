@@ -12,7 +12,7 @@ $ctable = BookingResourceModel::getTable();
 
 $dca = &$GLOBALS['TL_DCA'][$table];
 
-$dca['palettes']['default'] = '{title_legend},email,uuid;{timing_legend},start,end;{data_legend},data;{publishing_legend},published;';
+$dca['palettes']['default'] = '{title_legend},email,uuid;{timing_legend},start,end;{data_legend},data;{status_legend},status;';
 
 $dca['config'] = [
     'dataContainer' => DC_Table::class,
@@ -35,8 +35,9 @@ $dca['list'] = [
     ],
     'sorting' => [
         'mode' => DataContainer::MODE_PARENT,
-        'flag' => DataContainer::SORT_INITIAL_LETTER_ASC,
-        'fields' => ['email'],
+        'flag' => DataContainer::SORT_DESC,
+        'fields' => ['start'],
+        'disableGrouping' => true,
         'headerFields' => ['title', 'type'],
         'panelLayout' => 'filter;sort,search,limit',
     ],
@@ -60,10 +61,6 @@ $dca['list'] = [
             'href' => 'act=delete',
             'icon' => 'delete.svg',
             'attributes' => 'onclick="if(!confirm(\''.($GLOBALS['TL_LANG']['MSC']['deleteConfirm'] ?? '').'\'))return false;Backend.getScrollOffset()"',
-        ],
-        'toggle' => [
-            'icon' => 'visible.svg',
-            'attributes' => 'onclick="Backend.getScrollOffset();"',
         ],
         'show' => [
             'href' => 'act=show',
@@ -90,9 +87,9 @@ $dca['fields'] = [
     'status' => [
         'exclude' => true,
         'filter' => true,
-        'inputType' => 'checkbox',
-        'eval' => ['doNotCopy' => true, 'tl_class' => 'clr'],
-        'sql' => "char(1) NOT NULL default ''",
+        'inputType' => 'select',
+        'eval' => ['doNotCopy' => true, 'tl_class' => 'clr', 'chosen' => true],
+        'sql' => ['type' => 'string', 'length' => 64, 'default' => ''],
     ],
     'email' => [
         'exclude' => true,

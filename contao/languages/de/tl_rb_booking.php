@@ -14,3 +14,6 @@ $lang['end'] = ['Ende', 'Das Enddatum der Buchung.'];
 
 $lang['data_legend'] = 'Buchungsdaten';
 $lang['data'] = ['Buchungsdaten', ''];
+
+$lang['status_legend'] = 'Status-Einstellungen';
+$lang['status'] = ['Status', 'Der aktuelle Status der Buchung.'];

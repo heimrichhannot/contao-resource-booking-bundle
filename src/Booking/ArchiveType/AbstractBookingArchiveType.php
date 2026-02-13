@@ -32,4 +32,9 @@ abstract class AbstractBookingArchiveType implements BookingArchiveInterface
         $name = static::getName();
         return "resource_booking/calendar/{$name}";
     }
+
+    public static function hasTime(): bool
+    {
+        return false;
+    }
 }
