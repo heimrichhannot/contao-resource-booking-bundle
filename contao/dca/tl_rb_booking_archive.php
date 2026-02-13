@@ -118,6 +118,7 @@ $dca['fields'] = [
         'flag' => DataContainer::SORT_ASC,
         'inputType' => 'select',
         'eval' => [
+            'mandatory' => true,
             'includeBlankOption' => true,
             'tl_class' => 'w50',
             'multiple' => false,

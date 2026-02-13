@@ -1,0 +1,7 @@
+booking_archive_types:
+    consecutive_days: 'Book consecutive days'
+
+messages:
+    form_loading: 'Loading form&hellip;'
+    form_loading_error: 'Error loading form.'
+    general_error: 'An error occurred.'

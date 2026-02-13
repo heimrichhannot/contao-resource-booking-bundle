@@ -12,6 +12,7 @@ use Contao\CoreBundle\Twig\FragmentTemplate;
 use Contao\FormModel;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingArchiveModel;
 use HeimrichHannot\ResourceBookingBundle\Model\ResourceArchiveModel;
+use HeimrichHannot\ResourceBookingBundle\Model\ResourceModel;
 use HeimrichHannot\ResourceBookingBundle\Registry\BookingArchiveTypeRegistry;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -67,10 +68,25 @@ class BookingFormController extends AbstractContentElementController
 
         /** @var ResourceArchiveModel[] $resourceArchives */
         $resourceArchives = [];
+        $resources = [];
 
-        foreach ($resourceArchivesRaw as $archive) {
-            if ($archive instanceof ResourceArchiveModel && $archive->published) {
-                $resourceArchives[$archive->id] = $archive;
+        foreach ($resourceArchivesRaw as $archive)
+        {
+            if (!$archive instanceof ResourceArchiveModel || !$archive->published) {
+                continue;
+            }
+
+            $resourceArchives[$archive->id] = $archive;
+
+            $res = ResourceModel::findMultipleByPids([$archive->id])?->getModels() ?? [];
+
+            foreach ($res as $resource)
+            {
+                if (!$resource instanceof ResourceModel || !$resource->published) {
+                    continue;
+                }
+
+                $resources[$resource->id] = $resource;
             }
         }
 
@@ -78,6 +94,10 @@ class BookingFormController extends AbstractContentElementController
             $template->set('disabled', true);
             return $template->getResponse();
         }
+
+        $template->set('booking_archive', $bookingArchive);
+        $template->set('resource_archives', $resourceArchives);
+        $template->set('resources', $resources);
 
         $form = $this->makeHasteForm($model, $formModel);
         $formHelper = $form->getHelperObject();

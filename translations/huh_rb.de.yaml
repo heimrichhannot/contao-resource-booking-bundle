@@ -1,5 +1,29 @@
 booking_archive_types:
     consecutive_days: 'Ganze konsekutive Tage buchen'
 
+booking_data:
+    firstname: 'Vorname'
+    lastname: 'Nachname'
+    email: 'E-Mail'
+    phone: 'Telefonnummer'
+    message: 'Nachricht'
+    date: 'Datum'
+    org: 'Organisation'
+    organization: 'Organisation'
+    gender: 'Geschlecht'
+    sex: 'Geschlecht'
+
+booking_data_value:
+    gender:
+        m: 'Männlich'
+        f: 'Weiblich'
+        d: 'Divers'
+        male: 'Männlich'
+        female: 'Weiblich'
+        other: 'Divers'
+        diverse: 'Divers'
+
 messages:
-    loading_form: 'Formular wird geladen&hellip;'
+    form_loading: 'Formular wird geladen &hellip;'
+    form_loading_error: 'Fehler beim Laden des Formulars.'
+    general_error: 'Ein Fehler ist aufgetreten.'

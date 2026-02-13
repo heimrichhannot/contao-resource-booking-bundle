@@ -14,6 +14,7 @@ readonly class BookingModule
         return [
             Table::BOOKING_ARCHIVE->value,
             Table::BOOKING->value,
+            Table::BOOKING_RESOURCE->value,
         ];
     }
 }

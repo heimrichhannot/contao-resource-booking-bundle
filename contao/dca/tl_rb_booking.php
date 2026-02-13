@@ -1,37 +1,43 @@
 <?php
 
+use Contao\DataContainer;
 use Contao\DC_Table;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingArchiveModel;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingModel;
+use HeimrichHannot\ResourceBookingBundle\Model\BookingResourceModel;
 
 $table = BookingModel::getTable();
 $ptable = BookingArchiveModel::getTable();
+$ctable = BookingResourceModel::getTable();
 
 $dca = &$GLOBALS['TL_DCA'][$table];
 
-$dca['palettes']['default'] = '{title_legend},title,alias;{publishing_legend},published;';
+$dca['palettes']['default'] = '{title_legend},email,uuid;{timing_legend},start,end;{data_legend},data;{publishing_legend},published;';
 
 $dca['config'] = [
     'dataContainer' => DC_Table::class,
     'ptable' => $ptable,
+    'ctable' => [$ctable],
     'enableVersioning' => true,
     'sql' => [
         'keys' => [
             'id' => 'primary',
             'pid' => 'index',
+            'uuid' => 'index,unique',
         ],
     ],
 ];
 
 $dca['list'] = [
     'label' => [
-        'fields' => ['title'],
+        'fields' => ['email'],
         'format' => '%s',
     ],
     'sorting' => [
-        'mode' => 4,
-        'fields' => ['title'],
-        'headerFields' => ['title', 'tstamp'],
+        'mode' => DataContainer::MODE_PARENT,
+        'flag' => DataContainer::SORT_INITIAL_LETTER_ASC,
+        'fields' => ['email'],
+        'headerFields' => ['title', 'type'],
         'panelLayout' => 'filter;sort,search,limit',
     ],
     'global_operations' => [
@@ -42,6 +48,10 @@ $dca['list'] = [
         ],
     ],
     'operations' => [
+        'children' => [
+            'href' => "table=$ctable",
+            'icon' => 'children.svg',
+        ],
         'edit'=> [
             'href' => 'act=edit',
             'icon' => 'edit.svg',
@@ -84,15 +94,6 @@ $dca['fields'] = [
         'eval' => ['doNotCopy' => true, 'tl_class' => 'clr'],
         'sql' => "char(1) NOT NULL default ''",
     ],
-    'title' => [
-        'exclude' => true,
-        'search' => true,
-        'sorting' => true,
-        'flag' => 1,
-        'inputType' => 'text',
-        'eval' => ['mandatory' => true, 'tl_class' => 'w50'],
-        'sql' => ['type' => 'string', 'length' => 255, 'default' => ''],
-    ],
     'email' => [
         'exclude' => true,
         'search' => true,
@@ -102,10 +103,18 @@ $dca['fields'] = [
         'eval' => ['mandatory' => true, 'tl_class' => 'w50', 'rgxp' => 'email'],
         'sql' => ['type' => 'string', 'length' => 255, 'default' => ''],
     ],
+    'uuid' => [
+        'exclude' => true,
+        'search' => true,
+        'inputType' => 'text',
+        'eval' => ['mandatory' => false, 'tl_class' => 'w50', 'readonly' => true],
+        'sql' => ['type' => 'string', 'length' => 255, 'default' => ''],
+    ],
     'data' => [
         'exclude' => true,
         'search' => false,
         'sorting' => false,
+        'inputType' => 'huh_rb_blobTable',
         'sql' => ['type' => 'blob', 'default' => null, 'notnull' => false],
     ],
     'internalState' => [
@@ -118,7 +127,25 @@ $dca['fields'] = [
         'exclude' => true,
         'sorting' => true,
         'inputType' => 'text',
-        'eval' => ['rgxp' => 'datim', 'datepicker' => true, 'tl_class' => 'w50 wizard'],
+        'eval' => ['rgxp' => 'date', 'datepicker' => true, 'tl_class' => 'w50 wizard'],
+        'sql' => ['type' => 'string', 'length' => 10, 'default' => null, 'notnull' => false],
+    ],
+    'start' => [
+        'exclude' => true,
+        'search' => true,
+        'sorting' => true,
+        'flag' => 1,
+        'inputType' => 'text',
+        'eval' => ['rgxp' => 'date', 'datepicker' => true, 'tl_class' => 'w50 wizard', 'mandatory' => true],
+        'sql' => ['type' => 'string', 'length' => 10, 'default' => null, 'notnull' => false],
+    ],
+    'end' => [
+        'exclude' => true,
+        'search' => true,
+        'sorting' => true,
+        'flag' => 1,
+        'inputType' => 'text',
+        'eval' => ['rgxp' => 'date', 'datepicker' => true, 'tl_class' => 'w50 wizard', 'mandatory' => true],
         'sql' => ['type' => 'string', 'length' => 10, 'default' => null, 'notnull' => false],
     ],
 ];

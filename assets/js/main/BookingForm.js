@@ -1,4 +1,5 @@
 import { validateConfig } from "./config.js";
+import BookingData from "./BookingData.js";
 
 export default class BookingForm {
     #isLoading = false;
@@ -15,6 +16,7 @@ export default class BookingForm {
 
         this.$root = $root;
         this.config = config;
+        this.data = new BookingData();
 
         this.$form = $root.querySelector(config.selectors.form);
         this.$mount = $root.querySelector(config.selectors.mount);
@@ -25,6 +27,7 @@ export default class BookingForm {
         if (!this.$dataInput) throw new Error(`Data input not found via selector "${config.selectors.dataInput}"`);
 
         for (const template of this.$root.querySelectorAll('[data-rb-template]')) {
+            if (!template.dataset.rbTemplate) continue;
             this.#templates[template.dataset.rbTemplate] = template.cloneNode(true);
         }
 
@@ -36,12 +39,15 @@ export default class BookingForm {
     }
 
     set isLoading(isLoading) {
+        isLoading = !!isLoading;
         this.#isLoading = isLoading;
         this.$form.disabled = isLoading;
         this.$root.classList.toggle(this.loadingClassName, isLoading);
+        if (this._loadingTimeout) clearTimeout(this._loadingTimeout);
     }
 
     getTemplate(name) {
+        if (!this.hasTemplate(name)) return null;
         return this.#templates[name] || null;
     }
 
@@ -51,6 +57,21 @@ export default class BookingForm {
 
     hasTemplate(name) {
         return this.#templates.hasOwnProperty(name);
+    }
+
+    bind({ loadingTimeout = 5000 } = {}) {
+        this.isLoading = this.$root.classList.contains(this.loadingClassName);
+        if (this.isLoading) {
+            this._loadingTimeout = setTimeout(() => {
+                this.$root.innerHTML = this.getTemplate('error-loading').innerHTML || 'Error: Could not load booking form.';
+            }, loadingTimeout);
+        }
+
+        this.$form.addEventListener('submit', this.onSubmit.bind(this));
+    }
+
+    onSubmit(e) {
+        this.$dataInput.value = JSON.stringify(this.data);
     }
 
     async fetch(url, options = {}) {

@@ -1,4 +1,5 @@
 {% extends "@Contao/content_element/_base.html.twig" %}
+{% trans_default_domain 'huh_rb' %}
 
 {% set root_attrs = attrs()
     .set('data-huhrb-root', js_root_data|json_encode)
@@ -8,7 +9,19 @@
 
 {% set mount_attrs = attrs()
     .set('id', mount_id)
+    .set('class', 'rb-calendar')
     .mergeWith(mount_attrs|default)
+%}
+
+{% set main_attrs = attrs()
+    .set('data-rb-if', '(!loading)')
+    .set('class', 'rb-main')
+    .mergeWith(main_attrs|default)
+%}
+
+{% set loader_attrs = attrs()
+    .set('data-rb-if', '(loading)')
+    .mergeWith(loader_attrs|default)
 %}
 
 {% set importmap = {
@@ -33,10 +46,15 @@
 {% block enabled %}
     <div {{ root_attrs }}>
 
-        <div data-rb-if="(!loading)" class="rb-main">
+        {% block root_start %}{% endblock %}
+
+        <div {{ main_attrs }}>
             {{ include(mount_template, {
                 attributes: mount_attrs,
                 mount_id: mount_id,
+                booking_archives: booking_archives,
+                resource_archives: resource_archives,
+                resources: resources,
             }) }}
 
             {{ include('@Contao/resource_booking/haste_form.html.twig', {
@@ -45,15 +63,21 @@
             }) }}
         </div>
 
-        <div data-rb-if="(loading)" class="rb-loader">
+        <div {{ loader_attrs }}>
             {% block loading %}
-                {{ 'messages.loading_form'|trans({}, 'huh_rb')|raw }}
+                <p>{{ 'messages.form_loading'|trans|raw }}</p>
             {% endblock %}
         </div>
 
         <template data-rb-template="error">
-            {% block template_error %}
-                <p>Fehler beim Buchen.</p>
+            {% block template_general_error %}
+                <p>{{ 'messages.general_error'|trans|raw }}</p>
+            {% endblock %}
+        </template>
+
+        <template data-rb-template="error-loading">
+            {% block template_form_loading_error %}
+                <p>{{ 'messages.form_loading_error'|trans|raw }}</p>
             {% endblock %}
         </template>
 

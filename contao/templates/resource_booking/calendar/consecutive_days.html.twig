@@ -1,5 +1,7 @@
 {% extends '@Contao/resource_booking/calendar.html.twig' %}
 
+{% do attributes.mergeWith({ class: 'rb-calendar--consecutive-days' }) %}
+
 {% block mount %}
 {% endblock %}
 
@@ -12,6 +14,7 @@
         if (!bookingForm) {
             throw new Error('Booking form not found');
         }
+        console.debug('Booking form found:', bookingForm, ' now binding...');
 
         const cal = await ConsecutiveDays.mount(bookingForm);
     </script>
