@@ -14,7 +14,17 @@
             {% for key, value in data %}
                 <tr>
                     <td>{{ ('booking_data.' ~ key)|trans }}</td>
-                    <td>{{ value }}</td>
+                    {% set value_trans_key = ('booking_data_value.' ~ key ~ '.' ~ value) %}
+                    {% if ' ' in value %}
+                        <td>{{ value }}</td>
+                    {% else %}
+                        {% set value_translated = value_trans_key|trans %}
+                        {% if value_translated != value_trans_key %}
+                            <td>{{ value_translated }}</td>
+                        {% else %}
+                            <td>{{ value }}</td>
+                        {% endif %}
+                    {% endif %}
                 </tr>
             {% endfor %}
             </tbody>
