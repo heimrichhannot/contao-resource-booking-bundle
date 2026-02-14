@@ -12,8 +12,9 @@ $lang['timing_legend'] = 'Zeitraum';
 $lang['start'] = ['Beginn', 'Das Startdatum der Buchung.'];
 $lang['end'] = ['Ende', 'Das Enddatum der Buchung.'];
 
-$lang['data_legend'] = 'Buchungsdaten';
+$lang['data_legend'] = 'Buchung';
 $lang['data'] = ['Buchungsdaten', ''];
+$lang['_bookedResources'] = ['Gebuchte Ressourcen', ''];
 
 $lang['status_legend'] = 'Status-Einstellungen';
 $lang['status'] = ['Status', 'Der aktuelle Status der Buchung.'];

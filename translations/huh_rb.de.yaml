@@ -28,6 +28,7 @@ messages:
     form_loading_error: 'Fehler beim Laden des Formulars.'
     general_error: 'Ein Fehler ist aufgetreten.'
     datetime_incorrect: 'Ungültiges Datum oder Zeitformat'
+    no_resources_booked: 'Keine Ressourcen gebucht.'
 
 status:
     approved: 'Genehmigt'

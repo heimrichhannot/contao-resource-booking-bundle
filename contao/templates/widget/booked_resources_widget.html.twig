@@ -1,0 +1,29 @@
+{% trans_default_domain 'huh_rb' %}
+<div class="booked-resources-widget">
+    {% if list is empty %}
+        <p>{{ 'messages.no_resources_booked'|trans }}</p>
+    {% else %}
+        <ol class="booked-resources">
+            {% for item in list %}
+            <li>{{ item.quantity }}&nbsp;&times;&ensp;{{ item.resource.title|default }}</li>
+            {% endfor %}
+        </ol>
+    {% endif %}
+</div>
+<style>
+    .booked-resources {
+        --marker-text: var(--text, light-dark(#000, #fff));
+
+        margin-block: .75rem .5rem;
+        list-style: lower-roman;
+
+        li {
+            margin-bottom: .5rem;
+            padding-inline-start: .5rem;
+
+            &::marker {
+                color: rgb(from var(--marker-text) r g b /.6);
+            }
+        }
+    }
+</style>

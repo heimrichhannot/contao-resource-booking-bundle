@@ -8,6 +8,7 @@ use HeimrichHannot\ResourceBookingBundle\Model\BookingResourceModel;
 use HeimrichHannot\ResourceBookingBundle\Model\ResourceArchiveModel;
 use HeimrichHannot\ResourceBookingBundle\Model\ResourceModel;
 use HeimrichHannot\ResourceBookingBundle\Widget\BlobWidget;
+use HeimrichHannot\ResourceBookingBundle\Widget\BookedResourcesWidget;
 
 /*
  * Backend modules
@@ -36,3 +37,4 @@ $GLOBALS['TL_MODELS'][ResourceModel::getTable()] = ResourceModel::class;
  * Backend form fields
  */
 $GLOBALS['BE_FFL'][BlobWidget::TYPE] = BlobWidget::class;
+$GLOBALS['BE_FFL'][BookedResourcesWidget::TYPE] = BookedResourcesWidget::class;

@@ -12,7 +12,7 @@ $ctable = BookingResourceModel::getTable();
 
 $dca = &$GLOBALS['TL_DCA'][$table];
 
-$dca['palettes']['default'] = '{title_legend},email,uuid;{timing_legend},start,end;{data_legend},data;{status_legend},status;';
+$dca['palettes']['default'] = '{title_legend},email,uuid;{timing_legend},start,end;{data_legend},data,_bookedResources;{status_legend},status;';
 
 $dca['config'] = [
     'dataContainer' => DC_Table::class,
@@ -49,26 +49,12 @@ $dca['list'] = [
         ],
     ],
     'operations' => [
-        'children' => [
-            'href' => "table=$ctable",
-            'icon' => 'children.svg',
-        ],
-        'edit'=> [
-            'href' => 'act=edit',
-            'icon' => 'edit.svg',
-        ],
-        'delete' => [
-            'href' => 'act=delete',
-            'icon' => 'delete.svg',
-            'attributes' => 'onclick="if(!confirm(\''.($GLOBALS['TL_LANG']['MSC']['deleteConfirm'] ?? '').'\'))return false;Backend.getScrollOffset()"',
-        ],
-        'show' => [
-            'href' => 'act=show',
-            'icon' => 'show.svg',
-        ],
+        'edit',
+        'children',
+        'delete',
+        'show',
     ],
 ];
-
 
 $dca['fields'] = [
     'id' => [
@@ -114,6 +100,13 @@ $dca['fields'] = [
         'inputType' => 'huh_rb_blobTable',
         'sql' => ['type' => 'blob', 'default' => null, 'notnull' => false],
     ],
+    '_bookedResources' => [
+        'exclude' => true,
+        'search' => false,
+        'sorting' => false,
+        'inputType' => 'huh_rb_bookedResources',
+        'sql' => null,
+    ],
     'internalState' => [
         'exclude' => true,
         'search' => false,
@@ -122,7 +115,7 @@ $dca['fields'] = [
     ],
     'expiresAt' => [
         'exclude' => true,
-        'sorting' => true,
+        'sorting' => false,
         'inputType' => 'text',
         'eval' => ['rgxp' => 'date', 'datepicker' => true, 'tl_class' => 'w50 wizard'],
         'sql' => ['type' => 'string', 'length' => 10, 'default' => null, 'notnull' => false],

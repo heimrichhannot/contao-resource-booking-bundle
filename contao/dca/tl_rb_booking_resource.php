@@ -81,4 +81,10 @@ $dca['fields'] = [
         'sql' => ['type' => 'integer', 'unsigned' => true, 'notnull' => true, 'default' => 0],
         'foreignKey' => "{$resourceTable}.title",
     ],
+    'quantity' => [
+        'exclude' => true,
+        'inputType' => 'text',
+        'eval' => ['rgxp' => 'natural', 'tl_class' => 'w50'],
+        'sql' => ['type' => 'integer', 'unsigned' => true, 'notnull' => true, 'default' => 1],
+    ],
 ];

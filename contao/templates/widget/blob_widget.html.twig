@@ -14,10 +14,10 @@
             {% for key, value in data %}
                 <tr>
                     <td>{{ ('booking_data.' ~ key)|trans }}</td>
-                    {% set value_trans_key = ('booking_data_value.' ~ key ~ '.' ~ value) %}
                     {% if ' ' in value %}
                         <td>{{ value }}</td>
                     {% else %}
+                        {% set value_trans_key = ('booking_data_value.' ~ key ~ '.' ~ value) %}
                         {% set value_translated = value_trans_key|trans %}
                         {% if value_translated != value_trans_key %}
                             <td>{{ value_translated }}</td>
@@ -33,7 +33,7 @@
 </div>
 <style>
     .blob-widget {
-        margin-top: .5rem;
+        margin-block: .5rem;
 
         table {
             width: 100%;
