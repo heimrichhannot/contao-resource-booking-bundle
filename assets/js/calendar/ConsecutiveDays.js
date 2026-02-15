@@ -50,18 +50,21 @@ export default class ConsecutiveDays {
         const elm = document.createElement("div");
         elm.classList.add('rb-calendar-container')
         elm.innerHTML = `
-            <fieldset class="rb-resources">
-                <legend>${this.labels.resources}</legend>
-                ${this.resources.map(r => {
-                    const id = `${this.$mount.id}-r${r.id}`;
-                    return `
-                        <label for="${id}" class="rb-resource-label">
-                            <input type="checkbox" class="rb-resource-cbx" id="${id}" value="${r.id}">
-                            <span>${r.title}</span>
-                        </label>
-                    `;
-                }).join('')}
-            </fieldset>
+            <div class="rb-selection">
+                <fieldset class="rb-resources">
+                    <legend>${this.labels.resources}</legend>
+                    ${this.resources.map(r => {
+                        const id = `${this.$mount.id}-r${r.id}`;
+                        return `
+                            <label for="${id}" class="rb-resource-label">
+                                <input type="checkbox" class="rb-resource-cbx" id="${id}" value="${r.id}">
+                                <span>${r.title}</span>
+                            </label>
+                        `;
+                    }).join('')}
+                </fieldset>
+                <div class="rb-picked-dates"></div>
+            </div>
             <div class="rb-airdatepicker" data-rb-slot="calendar"></div>
         `;
         this.$mount.appendChild(elm);
@@ -70,6 +73,36 @@ export default class ConsecutiveDays {
 
         this.checkboxes = elm.querySelectorAll('.rb-resource-cbx');
         this.initCheckboxes(this.checkboxes);
+
+        this.renderPickedDates();
+    }
+
+    renderPickedDates() {
+        const $pickedDates = this.$mount.querySelector('.rb-picked-dates');
+
+        if (!this.air.selectedDates || this.air.selectedDates.length !== 2) {
+            $pickedDates.innerHTML = this.bookingForm.getTemplate('select-dates')?.innerHTML
+                || '<div class="rb-no-dates-picked">Please select the date range you want to book in the calendar.</div>'
+            return;
+        }
+
+        const [start, end] = this.air.selectedDates;
+        if (start > end) {
+            [start, end] = [end, start];
+        }
+
+        if (!this.isRangeValid(start, end)) {
+            $pickedDates.innerHTML = this.bookingForm.getTemplate('invalid-dates')?.innerHTML
+                || '<div class="rb-invalid-dates">The selected date range is not valid.</div>'
+            return;
+        }
+
+        $pickedDates.innerHTML = this.air.selectedDates?.map(date => {
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `<div class="rb-picked-date">${day}.${month}.${year}</div>`;
+        }).join('');
     }
 
     initCheckboxes(checkboxes) {
@@ -98,6 +131,8 @@ export default class ConsecutiveDays {
 
         // update blocked ranges
         this._cal_updateBlockedDates();
+
+        this.renderPickedDates();
     }
 
     initCalendar($elm) {
@@ -113,7 +148,7 @@ export default class ConsecutiveDays {
             minDate: tomorrow,
             multipleDatesSeparator: '--',
             onSelect: (formattedDate, date, inst) => {
-                console.log('Selected dates:', formattedDate, date);
+                this.renderPickedDates();
             },
             onBeforeSelect: this._cal_onBeforeSelect.bind(this),
             onFocus: this._cal_onFocus.bind(this),
@@ -142,16 +177,15 @@ export default class ConsecutiveDays {
                 currentDate.setDate(currentDate.getDate() + 1);
             }
         }
+
+        if (air.selectedDates?.length === 2 && !this.isRangeValid(air.selectedDates[0], air.selectedDates[1])) {
+            air.clear();
+            air.$datepicker?.querySelectorAll('.-day-.-selected-')
+                .forEach(el => el.classList.remove('-selected-'));
+        }
     }
 
-    _cal_validateSelection(date, datepicker) {
-        // Check if we are in "range selection" mode
-        const otherDate = datepicker.selectedDates[0] ?? null;
-        if (otherDate === null || datepicker.selectedDates.length !== 1) return true;
-        console.log('otherDate', otherDate, 'datepicker.selectedDates', datepicker.selectedDates)
-
-        if (this.isDateBlocked(date)) return false;
-
+    isRangeValid(date, otherDate) {
         const t1 = date.getTime();
         const t2 = otherDate.getTime();
         const selStart = Math.min(t1, t2);
@@ -167,7 +201,15 @@ export default class ConsecutiveDays {
             }
         }
 
-        return true; // No blocks found
+        return true;
+    }
+
+    _cal_validateSelection(date, datepicker) {
+        // Check if we are in "range selection" mode
+        const otherDate = datepicker.selectedDates[0] ?? null;
+        if (otherDate === null || datepicker.selectedDates.length !== 1) return true;
+
+        return this.isRangeValid(date, otherDate);
     }
 
     _cal_onBeforeSelect({ date, datepicker }) {
@@ -260,7 +302,7 @@ export default class ConsecutiveDays {
     }
 
     err() {
-        this.$mount.innerHTML = this.bookingForm.getTemplate('error').innerHTML || 'An error occurred.';
+        this.$mount.innerHTML = this.bookingForm.getTemplate('error')?.innerHTML || 'An error occurred.';
     }
 
     /**

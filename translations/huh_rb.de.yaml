@@ -30,6 +30,8 @@ messages:
     datetime_incorrect: 'Ungültiges Datum oder Zeitformat'
     no_resources_booked: 'Keine Ressourcen gebucht.'
     submission_empty: 'Bitte treffen Sie Ihre Auswahl zur Buchung.'
+    select_dates: 'Bitte wählen Sie im Kalender einen verfügbaren Zeitraum für Ihre Buchung aus.'
+    invalid_dates: 'Bitte wählen Sie einen verfügbaren Zeitraum im Kalender aus.'
 
 status:
     approved: 'Genehmigt'

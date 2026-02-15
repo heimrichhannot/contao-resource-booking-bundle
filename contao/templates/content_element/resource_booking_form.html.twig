@@ -81,6 +81,18 @@
             {% endblock %}
         </template>
 
+        <template data-rb-template="select-dates">
+            {%- block template_select_dates -%}
+                <div class="rb-no-dates-picked">{{ 'messages.select_dates'|trans|raw }}</div>
+            {%- endblock -%}
+        </template>
+
+        <template data-rb-template="invalid-dates">
+            {%- block template_invalid_dates -%}
+                <div class="rb-invalid-dates">{{ 'messages.invalid_dates'|trans|raw }}</div>
+            {%- endblock -%}
+        </template>
+
         <template data-rb-message="error-submission-empty">
             {%- block template_submission_empty -%}
                 {{ 'messages.submission_empty'|trans|raw }}

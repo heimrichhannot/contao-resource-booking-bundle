@@ -88,7 +88,7 @@ export default class BookingForm {
         this.isLoading = this.$root.classList.contains(this.loadingClassName);
         if (this.isLoading) {
             this._loadingTimeout = setTimeout(() => {
-                this.$root.innerHTML = this.getTemplate('error-loading').innerHTML || 'Error: Could not load booking form.';
+                this.$root.innerHTML = this.getTemplate('error-loading')?.innerHTML || 'Error: Could not load booking form.';
             }, loadingTimeout);
         }
 
