@@ -35,7 +35,6 @@ export default class ConsecutiveDays {
 
     async init() {
         this.bookingForm.isLoading = true;
-        this.bookingForm.data.on('resources:changed', () => this.#disabledRanges = null);
 
         await Promise.all([
             this.loadResources(),
@@ -80,8 +79,25 @@ export default class ConsecutiveDays {
     }
 
     _onCheckboxChange(cbx) {
-        const resourceId = parseInt(cbx.value);
+        const resourceId = Number.parseInt(cbx.value);
+
+        // get previously blocked ranges for this resource (if it was previously selected)
+        // so we can unblock them before blocking new ones (if any)
+        let blockedRanges = this.bookingForm.data.isResourceUsed(resourceId)
+            ? this.getDisabledRanges(resourceId)
+            : null;
+
+        // update booking form data
         this.bookingForm.data.useResource(resourceId, +!!cbx.checked);
+
+        // reset cached disabled ranges
+        this.#disabledRanges = null
+
+        // unblock previously blocked ranges from this resource
+        if (blockedRanges) this._cal_unblockDates(blockedRanges);
+
+        // update blocked ranges
+        this._cal_updateBlockedDates();
     }
 
     initCalendar($elm) {
@@ -89,7 +105,7 @@ export default class ConsecutiveDays {
         tomorrow.setDate(tomorrow.getDate() + 1);
         tomorrow.setHours(0, 0, 0, 0);
 
-        return new AirDatepicker($elm, {
+        const air = new AirDatepicker($elm, {
             locale: this.options.airDatepicker?.locale ?? localeEn,
             inline: true,
             range: true,
@@ -103,19 +119,73 @@ export default class ConsecutiveDays {
             onFocus: this._cal_onFocus.bind(this),
             onRenderCell: this._cal_onRenderCell.bind(this),
         });
+
+        this._cal_updateBlockedDates(air);
+
+        return air;
+    }
+
+    _cal_unblockDates(blockedRanges) {
+        for (const blockedRange of blockedRanges) {
+            for (let date = blockedRange[0]; date <= blockedRange[1]; date.setDate(date.getDate() + 1)) {
+                this.air.enableDate(date);
+            }
+        }
+    }
+
+    _cal_updateBlockedDates(air = this.air) {
+        for (const [start, end] of this.disabledRanges) {
+            let currentDate = new Date(start);
+
+            while (currentDate <= end) {
+                air.disableDate(new Date(currentDate));
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+        }
+    }
+
+    _cal_validateSelection(date, datepicker) {
+        // Check if we are in "range selection" mode
+        const otherDate = datepicker.selectedDates[0] ?? null;
+        if (otherDate === null || datepicker.selectedDates.length !== 1) return true;
+        console.log('otherDate', otherDate, 'datepicker.selectedDates', datepicker.selectedDates)
+
+        if (this.isDateBlocked(date)) return false;
+
+        const t1 = date.getTime();
+        const t2 = otherDate.getTime();
+        const selStart = Math.min(t1, t2);
+        const selEnd = Math.max(t1, t2);
+
+        // Check for Overlap against disabledRanges
+        for (const range of this.disabledRanges) {
+            const blockedStart = range[0] instanceof Date ? range[0].getTime() : range[0];
+            const blockedEnd = range[1] instanceof Date ? range[1].getTime() : range[1];
+
+            if (selStart <= blockedEnd && selEnd >= blockedStart) {
+                return false; // Overlap found, invalid selection
+            }
+        }
+
+        return true; // No blocks found
     }
 
     _cal_onBeforeSelect({ date, datepicker }) {
-        console.log('Before select:', date, datepicker);
-        return true;
+        // Pure logic: just return the validation result
+        return this._cal_validateSelection(date, datepicker);
     }
 
     _cal_onFocus({ date, datepicker }) {
-        console.log('Focus:', date, datepicker);
+        const isValid = this._cal_validateSelection(date, datepicker);
+        datepicker.$datepicker.classList.toggle('-disabled-range-', !isValid);
     }
 
     _cal_onRenderCell({ date }) {
-        console.log('Render cell:', date);
+        if (this.isDateBlocked(date)) {
+            return {
+                disabled: true,
+            };
+        }
     }
 
     get applicableBookings() {
@@ -123,13 +193,21 @@ export default class ConsecutiveDays {
     }
 
     get disabledRanges() {
-        if (this.#disabledRanges) return this.#disabledRanges;
+        return this.getDisabledRanges();
+    }
+
+    getDisabledRanges(resourceId = null) {
+        if (resourceId === null && this.#disabledRanges) {
+            return this.#disabledRanges;
+        }
 
         const rangesRaw = [];
         for (const booking of this.applicableBookings) {
-            // const resourceId = booking.resource_id;
-            const blockedRanges = booking.blocked;
-            for (const blockedRange of blockedRanges) {
+            // if resourceId is specified, only consider bookings for that resource
+            if (resourceId !== null && booking.resource_id !== resourceId) continue;
+
+            // Convert blocked ranges from UNIX timestamps to Date objects and normalize them to cover entire days
+            for (const blockedRange of booking.blocked) {
                 const startDay = new Date(Number.parseInt(blockedRange.start) * 1000);
                 const endDay = new Date(Number.parseInt(blockedRange.end) * 1000);
                 startDay.setHours(0, 0, 0, 0);
@@ -158,6 +236,10 @@ export default class ConsecutiveDays {
         }
 
         return this.#disabledRanges = ranges;
+    }
+
+    isDateBlocked(date) {
+        return this.disabledRanges.some(range => date >= range[0] && date <= range[1]);
     }
 
     async loadResources() {

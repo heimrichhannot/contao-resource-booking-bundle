@@ -7,3 +7,8 @@
         [data-rb-if*="(!loading)"] { display: none; }
     }
 }
+
+.air-datepicker.-disabled-range- {
+    --adp-cell-background-color-in-range: #eeeeee;
+    --adp-cell-background-color-selected: #d0d0d0;
+}
