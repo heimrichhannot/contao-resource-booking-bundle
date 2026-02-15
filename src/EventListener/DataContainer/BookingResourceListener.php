@@ -47,7 +47,7 @@ readonly class BookingResourceListener
             ->where('id NOT IN (:excludeIds)')
             ->orWhere('id = :self')
             ->setParameter('excludeIds', $alreadyBookedResources, ArrayParameterType::INTEGER)
-            ->setParameter('self', $dc->id)
+            ->setParameter('self', (int) ($dc->value ?: 0))
             ->executeQuery();
         $resources = $result->fetchAllAssociative();
         $result->free();

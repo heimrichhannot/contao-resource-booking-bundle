@@ -14,8 +14,8 @@
         if (!bookingForm) {
             throw new Error('Booking form not found');
         }
-        console.debug('Booking form found:', bookingForm, ' now binding...');
 
         const cal = await ConsecutiveDays.mount(bookingForm);
+        window.huhRbCal = window.huhRbCal || cal;
     </script>
 {% endblock %}

@@ -6,3 +6,4 @@ $lang = &$GLOBALS['TL_LANG'][BookingResourceModel::getTable()];
 
 $lang['title_legend'] = 'Allgemeine Einstellungen';
 $lang['resourceId'] = ['Ressource', 'Die Ressource, die für die Buchung reserviert wurde.'];
+$lang['quantity'] = ['Anzahl', 'Die Anzahl der reservierten Ressourcen.'];

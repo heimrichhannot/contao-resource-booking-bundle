@@ -4,6 +4,8 @@ import BookingData from "./BookingData.js";
 export default class BookingForm {
     #isLoading = false;
     #templates = {};
+    #messages = {};
+    #data = null;
 
     loadingClassName = 'rb-loading';
 
@@ -14,9 +16,9 @@ export default class BookingForm {
     constructor($root, config) {
         validateConfig(config);
 
+        this.#data = new BookingData();
         this.$root = $root;
         this.config = config;
-        this.data = new BookingData();
 
         this.$form = $root.querySelector(config.selectors.form);
         this.$mount = $root.querySelector(config.selectors.mount);
@@ -31,7 +33,17 @@ export default class BookingForm {
             this.#templates[template.dataset.rbTemplate] = template.cloneNode(true);
         }
 
+        for (const template of this.$root.querySelectorAll('[data-rb-message]')) {
+            if (!template.dataset.rbMessage) continue;
+            this.#messages[template.dataset.rbMessage] = template.innerHTML.trim();
+        }
+
         $root.bookingForm = this;
+    }
+
+    /** @return {BookingData} */
+    get data() {
+        return this.#data;
     }
 
     get isLoading() {
@@ -59,6 +71,19 @@ export default class BookingForm {
         return this.#templates.hasOwnProperty(name);
     }
 
+    getMessage(name) {
+        if (!this.hasMessage(name)) return null;
+        return this.#messages[name] || null;
+    }
+
+    setMessage(name, text) {
+        this.#messages[name] = text;
+    }
+
+    hasMessage(name) {
+        return this.#messages.hasOwnProperty(name);
+    }
+
     bind({ loadingTimeout = 5000 } = {}) {
         this.isLoading = this.$root.classList.contains(this.loadingClassName);
         if (this.isLoading) {
@@ -70,8 +95,15 @@ export default class BookingForm {
         this.$form.addEventListener('submit', this.onSubmit.bind(this));
     }
 
-    onSubmit(e) {
+    onSubmit(event) {
+        if (this.data.isEmpty) {
+            event.preventDefault();
+            alert(this.getMessage('error-submission-empty') || 'Please select at least one resource.');
+            return false;
+        }
+
         this.$dataInput.value = JSON.stringify(this.data);
+        return true;
     }
 
     async fetch(url, options = {}) {

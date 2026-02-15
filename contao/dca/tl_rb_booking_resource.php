@@ -9,7 +9,7 @@ $bookingTable = Table::BOOKING->value;
 $resourceTable = Table::RESOURCE->value;
 $dca = &$GLOBALS['TL_DCA'][$table];
 
-$dca['palettes']['default'] = '{title_legend},resourceId;';
+$dca['palettes']['default'] = '{title_legend},resourceId,quantity;';
 
 $dca['config'] = [
     'dataContainer' => DC_Table::class,
@@ -84,7 +84,8 @@ $dca['fields'] = [
     'quantity' => [
         'exclude' => true,
         'inputType' => 'text',
-        'eval' => ['rgxp' => 'natural', 'tl_class' => 'w50'],
+        'default' => 1,
+        'eval' => ['rgxp' => 'natural', 'tl_class' => 'w50', 'mandatory' => true],
         'sql' => ['type' => 'integer', 'unsigned' => true, 'notnull' => true, 'default' => 1],
     ],
 ];

@@ -4,6 +4,7 @@ namespace HeimrichHannot\ResourceBookingBundle\Controller;
 
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
+use HeimrichHannot\ResourceBookingBundle\Booking\FinalState;
 use HeimrichHannot\ResourceBookingBundle\Contao\Table;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,9 +19,39 @@ class ApiController extends AbstractController
     ) {}
 
     #[Route('/bookings/{bookingArchive}', name: 'bookings', methods: ['GET'])]
-    public function getBookings(Request $request, int $bookingArchive): Response
+    public function getBookings(int $bookingArchive): Response
     {
-        return $this->json([]);
+        if ($bookingArchive < 1) {
+            return $this->json(['error' => 'Invalid booking archive ID'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $result = $this->connection->createQueryBuilder()
+            ->select('r.id AS resourceId', 'br.quantity AS quantity', 'b.start AS start', 'b.end AS end')
+            ->from(Table::BOOKING->value, 'b')
+            ->innerJoin('b', Table::BOOKING_RESOURCE->value, 'br', 'b.id = br.pid')
+            ->innerJoin('br', Table::RESOURCE->value, 'r', 'br.resourceId = r.id')
+            ->where('b.pid = :id')
+            ->andWhere('b.status <> :status')
+            ->setParameter('id', $bookingArchive)
+            ->setParameter('status', FinalState::REJECTED->value)
+            ->executeQuery();
+        $bookings = $result->fetchAllAssociative();
+        $result->free();
+
+        $byResource = [];
+        foreach ($bookings as $booking) {
+            $resourceId = $booking['resourceId'];
+            unset($booking['resourceId']);
+            $byResource[$resourceId] ??= ['resource_id' => $resourceId];
+            $byResource[$resourceId]['blocked'][] = $booking;
+        }
+
+        \ksort($byResource);
+        $byResource = \array_values($byResource);
+
+        return $this->json([
+            'bookings' => $byResource,
+        ]);
     }
 
     #[Route('/resources', name: 'resources', methods: ['GET'])]

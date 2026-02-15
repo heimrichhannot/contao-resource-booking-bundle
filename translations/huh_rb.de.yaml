@@ -29,6 +29,7 @@ messages:
     general_error: 'Ein Fehler ist aufgetreten.'
     datetime_incorrect: 'Ungültiges Datum oder Zeitformat'
     no_resources_booked: 'Keine Ressourcen gebucht.'
+    submission_empty: 'Bitte treffen Sie Ihre Auswahl zur Buchung.'
 
 status:
     approved: 'Genehmigt'
