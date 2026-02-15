@@ -9,5 +9,5 @@ services:
     HeimrichHannot\ResourceBookingBundle\:
         resource: ../src
         exclude:
-            - ../src/{Contao,ContaoManager,DependencyInjection,Event,Model}
+            - ../src/{Contao,ContaoManager,DependencyInjection,Event,Model,Widget}
             - ../src/Booking/*.php
