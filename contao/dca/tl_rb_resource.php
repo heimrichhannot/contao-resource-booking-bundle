@@ -1,5 +1,6 @@
 <?php
 
+use Contao\DataContainer;
 use Contao\DC_Table;
 use HeimrichHannot\ResourceBookingBundle\Model\ResourceArchiveModel;
 use HeimrichHannot\ResourceBookingBundle\Model\ResourceModel;
@@ -42,23 +43,10 @@ $dca['list'] = [
         ],
     ],
     'operations' => [
-        'edit'=> [
-            'href' => 'act=edit',
-            'icon' => 'edit.svg',
-        ],
-        'delete' => [
-            'href' => 'act=delete',
-            'icon' => 'delete.svg',
-            'attributes' => 'onclick="if(!confirm(\''.($GLOBALS['TL_LANG']['MSC']['deleteConfirm'] ?? '').'\'))return false;Backend.getScrollOffset()"',
-        ],
-        'toggle' => [
-            'icon' => 'visible.svg',
-            'attributes' => 'onclick="Backend.getScrollOffset();"',
-        ],
-        'show' => [
-            'href' => 'act=show',
-            'icon' => 'show.svg',
-        ],
+        'edit',
+        'delete',
+        'toggle',
+        'show',
     ],
 ];
 
@@ -105,5 +93,13 @@ $dca['fields'] = [
         'huh_rb' => [
             'api' => true,
         ],
+    ],
+    'published' => [
+        'toggle' => true,
+        'filter' => true,
+        'flag' => DataContainer::SORT_INITIAL_LETTER_ASC,
+        'inputType' => 'checkbox',
+        'eval' => ['doNotCopy' => true],
+        'sql' => ['type' => 'boolean', 'default' => false],
     ],
 ];

@@ -72,6 +72,7 @@ readonly class BookingFactory
         $booking->end = $end->getTimestamp();
         $booking->data = \serialize($data);
         $booking->status = '';
+        $booking->uuid = $this->createBookingUuid($booking->row());
         $booking->save();
 
         $resources = \array_map(static fn (array $value) => (int) ($value['id'] ?? 0), $resources);
@@ -86,9 +87,6 @@ readonly class BookingFactory
             $bookingResource->quantity = 1;
             $bookingResource->save();
         }
-
-        $booking->uuid = $this->createBookingUuid($booking->row());
-        $booking->save();
 
         return $booking;
     }

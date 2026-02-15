@@ -85,7 +85,7 @@ class BookingFormController extends AbstractContentElementController
 
             $resourceArchives[$archive->id] = $archive;
 
-            $res = ResourceModel::findMultipleByPids([$archive->id])?->getModels() ?? [];
+            $res = ResourceModel::findPublishedByPids([$archive->id])?->getModels() ?? [];
 
             foreach ($res as $resource)
             {
