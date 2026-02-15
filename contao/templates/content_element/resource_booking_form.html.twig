@@ -99,6 +99,12 @@
             {%- endblock -%}
         </template>
 
+        <template data-rb-message="error-submission-no-range">
+            {%- block template_submission_no_range -%}
+                {{ 'messages.submission_no_range'|trans|raw }}
+            {%- endblock -%}
+        </template>
+
         {% block root_end %}{% endblock %}
 
     </div>

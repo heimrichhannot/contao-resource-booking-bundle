@@ -5,6 +5,7 @@ booking_data:
     firstname: 'Vorname'
     lastname: 'Nachname'
     email: 'E-Mail'
+    tel: 'Telefonnummer'
     phone: 'Telefonnummer'
     message: 'Nachricht'
     date: 'Datum'
@@ -30,6 +31,7 @@ messages:
     datetime_incorrect: 'Ungültiges Datum oder Zeitformat'
     no_resources_booked: 'Keine Ressourcen gebucht.'
     submission_empty: 'Bitte treffen Sie Ihre Auswahl zur Buchung.'
+    submission_no_range: 'Bitte wählen Sie einen Zeitraum aus.'
     select_dates: 'Bitte wählen Sie im Kalender einen verfügbaren Zeitraum für Ihre Buchung aus.'
     invalid_dates: 'Bitte wählen Sie einen verfügbaren Zeitraum im Kalender aus.'
 
@@ -38,3 +40,4 @@ status:
     pending: 'Wird Verarbeitet'
     rejected: 'Abgelehnt'
     irresolute: 'Unentschieden'
+    'pending:opt_in': 'Nutzer-Opt-In ausstehend'

@@ -13,9 +13,12 @@ use HeimrichHannot\ResourceBookingBundle\Contao\Table;
  * @property string $status
  * @property string $title
  * @property string $email
+ * @property string $uuid
  * @property array|string|null $data
  * @property array|string|null $internalState
  * @property int $expiresAt
+ * @property int $start
+ * @property int $end
  */
 class BookingModel extends Model
 {

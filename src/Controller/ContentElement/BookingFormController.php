@@ -7,13 +7,18 @@ use Codefog\HasteBundle\Util\ArrayPosition;
 use Contao\ContentModel;
 use Contao\CoreBundle\Controller\ContentElement\AbstractContentElementController;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsContentElement;
+use Contao\CoreBundle\Exception\RedirectResponseException;
 use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\CoreBundle\Twig\FragmentTemplate;
 use Contao\FormModel;
+use HeimrichHannot\ResourceBookingBundle\Booking\Factory\BookingFactory;
+use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\BookingPipeline;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingArchiveModel;
+use HeimrichHannot\ResourceBookingBundle\Model\BookingModel;
 use HeimrichHannot\ResourceBookingBundle\Model\ResourceArchiveModel;
 use HeimrichHannot\ResourceBookingBundle\Model\ResourceModel;
 use HeimrichHannot\ResourceBookingBundle\Registry\BookingArchiveTypeRegistry;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -26,7 +31,9 @@ class BookingFormController extends AbstractContentElementController
 
     public function __construct(
         private readonly BookingArchiveTypeRegistry $bookingArchiveTypeRegistry,
+        private readonly BookingFactory             $bookingFactory,
         private readonly ScopeMatcher               $scopeMatcher,
+        private readonly BookingPipeline            $bookingPipeline,
     ) {}
 
     protected function getResponse(FragmentTemplate $template, ContentModel $model, Request $request): Response
@@ -95,13 +102,32 @@ class BookingFormController extends AbstractContentElementController
             return $template->getResponse();
         }
 
+        $form = $this->makeHasteForm($model, $formModel);
+
+        if ($form->validate())
+        {
+            try {
+                $booking = $this->bookingFactory->createFromSubmittedData(
+                    archive: $bookingArchive,
+                    data: $form->fetchAll(),
+                    allowedResources: \array_keys($resources)
+                );
+            } catch (RuntimeException $e) {
+                $this->addFlash('error', 'messages.invalid_submission');
+                return $this->redirect($request->getRequestUri());
+            }
+
+            $this->bookingPipeline->process($booking);
+
+            return $this->redirect($request->getRequestUri());
+        }
+
+        $formHelper = $form->getHelperObject();
+        $template->set('haste_form', $formHelper);
+
         $template->set('booking_archive', $bookingArchive);
         $template->set('resource_archives', $resourceArchives);
         $template->set('resources', $resources);
-
-        $form = $this->makeHasteForm($model, $formModel);
-        $formHelper = $form->getHelperObject();
-        $template->set('haste_form', $formHelper);
 
         $mountId = 'rb-mount-' . $model->id;
         $template->set('mount_id', $mountId);

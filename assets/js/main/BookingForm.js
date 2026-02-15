@@ -102,6 +102,12 @@ export default class BookingForm {
             return false;
         }
 
+        if (!this.data.hasRange) {
+            event.preventDefault();
+            alert(this.getMessage('error-submission-no-range') || 'Please select a date range.');
+            return false;
+        }
+
         this.$dataInput.value = JSON.stringify(this.data);
         return true;
     }

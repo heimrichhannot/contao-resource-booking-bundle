@@ -2,7 +2,7 @@ export default class BookingData {
     #listeners = {};
     #resources = {};
     #start = null;
-    #stop = null;
+    #end = null;
 
     get resources() {
         return this.#resources;
@@ -12,12 +12,16 @@ export default class BookingData {
         return Object.keys(this.#resources).length < 1;
     }
 
+    get hasRange() {
+        return this.#start !== null && this.#end !== null;
+    }
+
     get start() {
         return this.#start;
     }
 
-    get stop() {
-        return this.#stop;
+    get end() {
+        return this.#end;
     }
 
     useResource(resourceId, quantity) {
@@ -41,13 +45,15 @@ export default class BookingData {
     }
 
     set start(start) {
+        if (!start instanceof Date) throw new Error('start must be a Date object');
         this.#start = start;
         this.dispatch('start:changed', { start });
     }
 
-    set stop(stop) {
-        this.#stop = stop;
-        this.dispatch('stop:changed', { stop });
+    set end(end) {
+        if (!end instanceof Date) throw new Error('end must be a Date object');
+        this.#end = end;
+        this.dispatch('end:changed', { end: end });
     }
 
     on(eventName, callback) {
@@ -65,6 +71,10 @@ export default class BookingData {
     }
 
     toJSON() {
-        return JSON.stringify(Object.values(this.#resources));
+        return {
+            resources: Object.values(this.#resources),
+            start: this.#start?.toISOString(),
+            end: this.#end?.toISOString(),
+        };
     }
 }

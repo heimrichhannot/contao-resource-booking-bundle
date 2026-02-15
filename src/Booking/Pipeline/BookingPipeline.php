@@ -25,7 +25,7 @@ readonly class BookingPipeline
             return $this->steps;
         }
 
-        $steps = (array) $this->stepsIterable;
+        $steps = \iterator_to_array($this->stepsIterable);
 
         \uasort($steps, static function (BookingStepInterface $a, BookingStepInterface $b): int {
             $cmp = $b->getPriority() <=> $a->getPriority(); // sort by descending priority

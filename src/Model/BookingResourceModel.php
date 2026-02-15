@@ -5,6 +5,13 @@ namespace HeimrichHannot\ResourceBookingBundle\Model;
 use Contao\Model;
 use HeimrichHannot\ResourceBookingBundle\Contao\Table;
 
+/**
+ * @property int $id
+ * @property int $pid
+ * @property int $tstamp
+ * @property int $resourceId
+ * @property int $quantity
+ */
 class BookingResourceModel extends Model
 {
     protected static $strTable = Table::BOOKING_RESOURCE->value;

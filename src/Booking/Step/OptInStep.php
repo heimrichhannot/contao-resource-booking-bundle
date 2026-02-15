@@ -80,7 +80,7 @@ readonly class OptInStep implements BookingStepInterface
 
     private function createOptInToken(BookingModel $booking, string $email): OptInTokenInterface
     {
-        return $this->optIn->create('huh_resource_booking-', $email, [
+        return $this->optIn->create('huhrb-', $email, [
             $booking::getTable() => [ $booking->id ],
         ]);
     }

@@ -147,8 +147,10 @@ export default class ConsecutiveDays {
             timepicker: false,
             minDate: tomorrow,
             multipleDatesSeparator: '--',
-            onSelect: (formattedDate, date, inst) => {
+            onSelect: ({ datepicker }) => {
                 this.renderPickedDates();
+                this.bookingForm.data.start = datepicker.selectedDates[0] || null;
+                this.bookingForm.data.end = datepicker.selectedDates[1] || null;
             },
             onBeforeSelect: this._cal_onBeforeSelect.bind(this),
             onFocus: this._cal_onFocus.bind(this),
@@ -183,25 +185,6 @@ export default class ConsecutiveDays {
             air.$datepicker?.querySelectorAll('.-day-.-selected-')
                 .forEach(el => el.classList.remove('-selected-'));
         }
-    }
-
-    isRangeValid(date, otherDate) {
-        const t1 = date.getTime();
-        const t2 = otherDate.getTime();
-        const selStart = Math.min(t1, t2);
-        const selEnd = Math.max(t1, t2);
-
-        // Check for Overlap against disabledRanges
-        for (const range of this.disabledRanges) {
-            const blockedStart = range[0] instanceof Date ? range[0].getTime() : range[0];
-            const blockedEnd = range[1] instanceof Date ? range[1].getTime() : range[1];
-
-            if (selStart <= blockedEnd && selEnd >= blockedStart) {
-                return false; // Overlap found, invalid selection
-            }
-        }
-
-        return true;
     }
 
     _cal_validateSelection(date, datepicker) {
@@ -282,6 +265,25 @@ export default class ConsecutiveDays {
 
     isDateBlocked(date) {
         return this.disabledRanges.some(range => date >= range[0] && date <= range[1]);
+    }
+
+    isRangeValid(date, otherDate) {
+        const t1 = date.getTime();
+        const t2 = otherDate.getTime();
+        const selStart = Math.min(t1, t2);
+        const selEnd = Math.max(t1, t2);
+
+        // Check for Overlap against disabledRanges
+        for (const range of this.disabledRanges) {
+            const blockedStart = range[0] instanceof Date ? range[0].getTime() : range[0];
+            const blockedEnd = range[1] instanceof Date ? range[1].getTime() : range[1];
+
+            if (selStart <= blockedEnd && selEnd >= blockedStart) {
+                return false; // Overlap found, invalid selection
+            }
+        }
+
+        return true;
     }
 
     async loadResources() {
