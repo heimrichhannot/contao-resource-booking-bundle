@@ -1,0 +1,32 @@
+{% extends "@Contao/content_element/_base.html.twig" %}
+{% trans_default_domain 'huh_rb' %}
+
+{% set confirmed = confirmed ?? false %}
+{% set error = error ?? null %}
+{% set placeholder = placeholder ?? false %}
+
+{% block content %}
+    {% if confirmed %}
+        {% block confirmation %}
+            <div class="alert alert-success">
+                {{ 'messages.opt_in_success'|trans|raw }}
+            </div>
+        {% endblock %}
+    {% endif %}
+
+    {% if error %}
+        {% block error %}
+            <div class="alert alert-danger">
+                {{ error }}
+            </div>
+        {% endblock %}
+    {% endif %}
+
+    {% if not confirmed and not error and placeholder %}
+        {% block placeholder %}
+            <div class="alert alert-info">
+                {{ 'messages.opt_in_placeholder'|trans|raw }}
+            </div>
+        {% endblock %}
+    {% endif %}
+{% endblock %}

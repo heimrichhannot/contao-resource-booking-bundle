@@ -1,7 +1,51 @@
 booking_archive_types:
     consecutive_days: 'Book consecutive days'
 
+booking_data:
+    firstname: 'First name'
+    lastname: 'Last name'
+    email: 'Email'
+    tel: 'Phone number'
+    phone: 'Phone number'
+    message: 'Message'
+    date: 'Date'
+    org: 'Organization'
+    organization: 'Organization'
+    gender: 'Gender'
+    sex: 'Gender'
+
+booking_data_value:
+    gender:
+        m: 'Male'
+        f: 'Female'
+        d: 'Other'
+        male: 'Male'
+        female: 'Female'
+        other: 'Other'
+        diverse: 'Diverse'
+
 messages:
     form_loading: 'Loading form&hellip;'
     form_loading_error: 'Error loading form.'
     general_error: 'An error occurred.'
+    datetime_incorrect: 'Invalid date or time format'
+    no_resources_booked: 'No resources booked.'
+    submission_empty: 'Please make a selection for your booking.'
+    submission_no_range: 'Please select a time range.'
+    select_dates: 'Please select an available time range in the calendar for your booking.'
+    invalid_dates: 'Please select an available time range in the calendar.'
+    opt_in_success: 'You have successfully confirmed your booking.'
+    opt_in_invalid: 'Invalid opt-in link.'
+    opt_in_already_confirmed: 'You have already confirmed your booking.'
+    opt_in_placeholder: 'Please confirm your booking by clicking the link in the email.'
+
+status:
+    approved: 'Approved'
+    pending: 'Processing'
+    rejected: 'Rejected'
+    irresolute: 'Undecided'
+    'pending:opt_in': 'User opt-in pending'
+
+ce:
+    opt_in:
+        be_label: 'Handles opt-in token in URL for resource booking'

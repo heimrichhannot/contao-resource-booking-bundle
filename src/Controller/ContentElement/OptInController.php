@@ -12,6 +12,7 @@ use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\BookingPipeline;
 use HeimrichHannot\ResourceBookingBundle\Booking\Step\OptInStep;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[AsContentElement(self::TYPE, template: 'content_element/resource_booking_opt_in')]
 class OptInController extends AbstractContentElementController
@@ -19,9 +20,10 @@ class OptInController extends AbstractContentElementController
     public const TYPE = 'huh_rb_opt_in';
 
     public function __construct(
-        private readonly BookingPipeline $pipeline,
-        private readonly OptInStep       $optInStep,
-        private readonly ScopeMatcher    $scopeMatcher,
+        private readonly BookingPipeline     $pipeline,
+        private readonly OptInStep           $optInStep,
+        private readonly TranslatorInterface $translator,
+        private readonly ScopeMatcher        $scopeMatcher,
     ) {}
 
     protected function getResponse(FragmentTemplate $template, ContentModel $model, Request $request): Response
@@ -33,12 +35,21 @@ class OptInController extends AbstractContentElementController
 
     protected function getBackendResponse(FragmentTemplate $template, ContentModel $model, Request $request): Response
     {
-        return new Response('Manages opt-in for resource booking');
+        return new Response($this->translator->trans('ce.opt_in.be_label', [], 'huh_rb'));
     }
 
     protected function getFrontendResponse(FragmentTemplate $template, ContentModel $model, Request $request): Response
     {
-        if (!$tokenId = $request->query->get('rb-token')) {
+        if (!$tokenId = $request->query->get('rb-token'))
+        {
+            if ($model->rb_showPlaceholder)
+            {
+                $template->set('confirmed', false);
+                $template->set('placeholder', true);
+
+                return $template->getResponse();
+            }
+
             return new Response();
         }
 

@@ -9,7 +9,7 @@ $resourceArchiveTable = ResourceArchiveModel::getTable();
 
 $dca = &$GLOBALS['TL_DCA'][$table];
 
-$dca['palettes']['huh_rb_opt_in'] = '{type_legend},type,headline;';
+$dca['palettes']['huh_rb_opt_in'] = '{type_legend},type,headline;{template_legend:hide},customTpl,rb_showPlaceholder;';
 $dca['palettes']['huh_rb_form'] = '{type_legend},type,headline;'
     . '{include_legend},rb_bookingArchive,rb_resourceArchives,rb_form;'
     . '{template_legend:hide},customTpl;'
@@ -50,4 +50,11 @@ $dca['fields']['rb_form'] = [
     'foreignKey' => "tl_form.title",
     'relation' => ['type' => 'hasOne', 'load' => 'lazy'],
     'sql' => ['type' => 'integer', 'unsigned' => true, 'default' => 0, 'notnull' => true],
+];
+$dca['fields']['rb_showPlaceholder'] = [
+    'exclude' => true,
+    'inputType' => 'checkbox',
+    'default' => false,
+    'eval' => ['tl_class' => 'w50 cbx m12'],
+    'sql' => ['type' => 'boolean', 'default' => false, 'notnull' => true],
 ];

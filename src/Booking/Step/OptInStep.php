@@ -7,6 +7,7 @@ use Contao\CoreBundle\OptIn\OptInTokenInterface;
 use Contao\Validator;
 use HeimrichHannot\ResourceBookingBundle\Booking\StepResult;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingModel;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Terminal42\NotificationCenterBundle\NotificationCenter;
 
 readonly class OptInStep implements BookingStepInterface
@@ -17,8 +18,9 @@ readonly class OptInStep implements BookingStepInterface
     }
 
     public function __construct(
-        private OptIn              $optIn,
-        private NotificationCenter $nc,
+        private OptIn               $optIn,
+        private NotificationCenter  $nc,
+        private TranslatorInterface $trans,
     ) {}
 
     public function getPriority(): int
@@ -133,21 +135,21 @@ readonly class OptInStep implements BookingStepInterface
     public function confirmToken(string $tokenId): BookingModel
     {
         if (!$token = $this->optIn->find($tokenId)) {
-            throw new \InvalidArgumentException('Invalid token ID');
+            throw new \InvalidArgumentException($this->trans->trans('messages.opt_in_invalid', [], 'huh_rb'));
         }
 
         if ($token->isConfirmed()) {
-            throw new \RuntimeException('Token already confirmed');
+            throw new \RuntimeException($this->trans->trans('messages.opt_in_already_confirmed', [], 'huh_rb'));
         }
 
         $related = $token->getRelatedRecords();
 
         if (!\count($related) || \key($related) !== BookingModel::getTable()) {
-            throw new \InvalidArgumentException('Invalid token');
+            throw new \InvalidArgumentException($this->trans->trans('messages.opt_in_invalid', [], 'huh_rb'));
         }
 
         if (!$booking = BookingModel::findById(\current($related))) {
-            throw new \RuntimeException('Booking not found');
+            throw new \RuntimeException($this->trans->trans('messages.opt_in_invalid', [], 'huh_rb'));
         }
 
         $token->confirm();

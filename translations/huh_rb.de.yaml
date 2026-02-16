@@ -34,6 +34,10 @@ messages:
     submission_no_range: 'Bitte wählen Sie einen Zeitraum aus.'
     select_dates: 'Bitte wählen Sie im Kalender einen verfügbaren Zeitraum für Ihre Buchung aus.'
     invalid_dates: 'Bitte wählen Sie einen verfügbaren Zeitraum im Kalender aus.'
+    opt_in_success: 'Sie haben Ihre Buchung erfolgreich bestätigt.'
+    opt_in_invalid: 'Ungültiger Opt-In-Link.'
+    opt_in_already_confirmed: 'Sie haben Ihre Buchung bereits bestätigt.'
+    opt_in_placeholder: 'Bitte bestätigen Sie Ihre Buchung durch Anklicken des Links in der E-Mail.'
 
 status:
     approved: 'Genehmigt'
@@ -41,3 +45,7 @@ status:
     rejected: 'Abgelehnt'
     irresolute: 'Unentschieden'
     'pending:opt_in': 'Nutzer-Opt-In ausstehend'
+
+ce:
+    opt_in:
+        be_label: 'Verarbeitet Opt-In-Token in URLs für Ressourcenbuchungen'
