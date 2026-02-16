@@ -5,7 +5,7 @@ This bundle provides resource booking capabilities for the Contao Open-Source CM
 > [!NOTE]
 > This bundle is in early development.
 >  
-> We welcome any feedback and contributions and will release a stable version soon.
+> We welcome any feedback and contributions.
 
 ## Installation
 
