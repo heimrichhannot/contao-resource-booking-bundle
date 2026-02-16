@@ -57,10 +57,7 @@
                 resources: resources,
             }) }}
 
-            {{ include('@Contao/resource_booking/haste_form.html.twig', {
-                data: haste_form,
-                submit: 'Buchen'
-            }) }}
+            {{ include('@Contao/resource_booking/haste_form.html.twig', { data: haste_form }) }}
         </div>
 
         <div {{ loader_attrs }}>
