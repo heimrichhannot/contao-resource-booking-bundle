@@ -8,7 +8,7 @@ class ReviewResponseNotificationType implements NotificationTypeInterface
 {
     use CommonBookingTokensTrait;
 
-    public const NAME = 'huh_rb_approval_response';
+    public const NAME = 'huh_rb_review_response';
 
     public function getName(): string
     {
