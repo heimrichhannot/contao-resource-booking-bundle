@@ -82,11 +82,11 @@ readonly class BookingListener
             return $record;
         }
 
-        if (!$booking = BookingModel::findByPk($dc->id)) {
+        if (!($record['notifyOnStatusChange'] ?? false)) {
             return $record;
         }
 
-        if (!($record['notifyOnStatusChange'] ?? false)) {
+        if (!$booking = BookingModel::findByPk($dc->id)) {
             return $record;
         }
 
