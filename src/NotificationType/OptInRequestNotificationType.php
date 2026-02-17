@@ -7,6 +7,8 @@ use Terminal42\NotificationCenterBundle\Token\Definition\AnythingTokenDefinition
 
 class OptInRequestNotificationType implements NotificationTypeInterface
 {
+    use CommonBookingTokensTrait;
+
     public const NAME = 'huh_rb_opt_in_request';
 
     public function getName(): string
@@ -17,9 +19,8 @@ class OptInRequestNotificationType implements NotificationTypeInterface
     public function getTokenDefinitions(): array
     {
         return [
-            new AnythingTokenDefinition('email', 'The email address of the user to opt-in'),
+            ...$this->getCommonBookingTokens(),
             new AnythingTokenDefinition('token', 'The opt-in token to confirm the opt-in'),
-            new AnythingTokenDefinition('booking_*', 'All fields of the booking record, prefixed with "booking_"'),
         ];
     }
 }

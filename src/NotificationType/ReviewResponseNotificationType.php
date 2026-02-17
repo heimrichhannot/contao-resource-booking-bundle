@@ -4,9 +4,11 @@ namespace HeimrichHannot\ResourceBookingBundle\NotificationType;
 
 use Terminal42\NotificationCenterBundle\NotificationType\NotificationTypeInterface;
 
-class ApprovalRequestNotificationType implements NotificationTypeInterface
+class ReviewResponseNotificationType implements NotificationTypeInterface
 {
-    public const NAME = 'huh_rb_approval_request';
+    use CommonBookingTokensTrait;
+
+    public const NAME = 'huh_rb_approval_response';
 
     public function getName(): string
     {
@@ -15,6 +17,6 @@ class ApprovalRequestNotificationType implements NotificationTypeInterface
 
     public function getTokenDefinitions(): array
     {
-        return [];
+        return $this->getCommonBookingTokens();
     }
 }
