@@ -74,7 +74,7 @@ $dca['fields'] = [
         'exclude' => true,
         'filter' => true,
         'inputType' => 'select',
-        'eval' => ['doNotCopy' => true, 'tl_class' => 'clr', 'chosen' => true],
+        'eval' => ['doNotCopy' => true, 'tl_class' => 'clr w100', 'chosen' => true],
         'sql' => ['type' => 'string', 'length' => 64, 'default' => ''],
     ],
     'email' => [
@@ -137,5 +137,12 @@ $dca['fields'] = [
         'inputType' => 'text',
         'eval' => ['rgxp' => 'date', 'datepicker' => true, 'tl_class' => 'w50 wizard', 'mandatory' => true],
         'sql' => ['type' => 'string', 'length' => 10, 'default' => null, 'notnull' => false],
+    ],
+    'notifyOnStatusChange' => [
+        'exclude' => true,
+        'inputType' => 'checkbox',
+        'eval' => ['tl_class' => 'w100 clr cbx'],
+        'default' => true,
+        'sql' => ['type' => 'boolean', 'default' => true, 'notnull' => true],
     ],
 ];

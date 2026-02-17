@@ -10,4 +10,4 @@ $lang['alias'] = ['Alias', 'Der Alias des Ressourcenarchivs.'];
 $lang['tstamp'] = ['Letzte Änderung', 'Der Zeitpunkt der letzten Änderung des Ressourcenarchivs.'];
 
 $lang['publishing_legend'] = 'Veröffentlichung';
-$lang['published'] = ['Veröffentlicht', 'Das Ressourcenarchiv wird auf der Webseite angezeigt.'];
+$lang['published'] = ['Veröffentlicht', 'Soll dieses Ressourcenarchiv auf der Webseite angezeigt werden?'];

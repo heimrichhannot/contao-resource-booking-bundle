@@ -17,4 +17,5 @@ $lang['data'] = ['Buchungsdaten', ''];
 $lang['_bookedResources'] = ['Gebuchte Ressourcen', ''];
 
 $lang['status_legend'] = 'Status-Einstellungen';
+$lang['notifyOnStatusChange'] = ['Nutzer bei Statusänderung benachrichtigen', 'Soll der Benutzer benachrichtigt werden, wenn Sie unterhalb die Freigabe erteilen oder verweigern? Gilt nur für Status "Genehmigt" und "Abgelehnt".'];
 $lang['status'] = ['Status', 'Der aktuelle Status der Buchung.'];

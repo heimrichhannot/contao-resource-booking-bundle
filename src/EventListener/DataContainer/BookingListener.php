@@ -2,15 +2,20 @@
 
 namespace HeimrichHannot\ResourceBookingBundle\EventListener\DataContainer;
 
+use Contao\CoreBundle\DataContainer\PaletteManipulator;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
 use Contao\DataContainer;
 use Contao\StringUtil;
 use Doctrine\DBAL\Connection;
 use HeimrichHannot\ResourceBookingBundle\Booking\Factory\BookingFactory;
 use HeimrichHannot\ResourceBookingBundle\Booking\FinalState;
+use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\BookingPipeline;
+use HeimrichHannot\ResourceBookingBundle\Booking\Step\ReviewStep;
 use HeimrichHannot\ResourceBookingBundle\Contao\Table;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingArchiveModel;
+use HeimrichHannot\ResourceBookingBundle\Model\BookingModel;
 use HeimrichHannot\ResourceBookingBundle\Registry\BookingArchiveTypeRegistry;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 readonly class BookingListener
@@ -19,6 +24,8 @@ readonly class BookingListener
         private Connection                 $connection,
         private BookingArchiveTypeRegistry $archiveTypeRegistry,
         private BookingFactory             $bookingFactory,
+        private RequestStack               $requestStack,
+        private ReviewStep                 $reviewStep,
         private TranslatorInterface        $translation,
     ) {}
 
@@ -42,6 +49,68 @@ readonly class BookingListener
             ->setParameter('uuid', $uuid)
             ->setParameter('id', $id)
             ->executeStatement();
+    }
+
+    #[AsCallback(Table::BOOKING->value, 'config.onload')]
+    public function onLoadConfig(?DataContainer $dc = null): void
+    {
+        if (!$dc || !$dc->id || 'edit' !== $this->requestStack->getCurrentRequest()?->query->get('act')) {
+            return;
+        }
+
+        if (!$booking = BookingModel::findByPk($dc->id)) {
+            return;
+        }
+
+        if (!$archive = BookingArchiveModel::findByPk($booking->pid)) {
+            return;
+        }
+
+        if (!$archive->requireReview) {
+            return;
+        }
+
+        PaletteManipulator::create()
+            ->addField('notifyOnStatusChange', 'status', PaletteManipulator::POSITION_BEFORE)
+            ->applyToPalette('default', Table::BOOKING->value);
+    }
+
+    #[AsCallback(Table::BOOKING->value, 'config.onbeforesubmit')]
+    public function onBeforeSubmit(array $record, DataContainer $dc): array
+    {
+        if (!$dc || !$dc->id) {
+            return $record;
+        }
+
+        if (!$booking = BookingModel::findByPk($dc->id)) {
+            return $record;
+        }
+
+        if (!($record['notifyOnStatusChange'] ?? false)) {
+            return $record;
+        }
+
+        if (!$archive = BookingArchiveModel::findByPk($booking->pid)) {
+            return $record;
+        }
+
+        if (!$archive->requireReview) {
+            return $record;
+        }
+
+        $oldStatus = (string) $booking->status;
+        $newStatus = (string) ($record['status'] ?? '');
+
+        if ($newStatus && $oldStatus !== $newStatus)
+        {
+            $finalState = FinalState::tryFrom($newStatus);
+
+            if ($finalState && $finalState->isResolved()) {
+                $this->reviewStep->review($booking, $finalState === FinalState::APPROVED);
+            }
+        }
+
+        return $record;
     }
 
     #[AsCallback(Table::BOOKING->value, 'fields.status.options')]
