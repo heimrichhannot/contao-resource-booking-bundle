@@ -19,12 +19,26 @@ Requires **Contao ^5.3** and **PHP ^8.2**.
 
 ## Features
 - Create and manage resources and their availability
-- Book resources for specific time slots
-- Create custom forms in the form generator to collect any information you
-  need when booking resources
+- Create custom forms in the form generator to book resources and collect arbitrary data from
+  input fields; whatever is needed in your project
 - Display a calendar with bookings and available resources
+- Create custom calendar templates to display resources and bookings however you like
+- Optional double opt-in booking process included (using Contao's built-in opt-in mechanism)
+- Handle bookings in the backend, e.g., to approve or reject them
 - Send notifications for bookings and cancellations
+- Book resources for specific time slots (not fully implemented yet)
+- Full [notification center](https://github.com/terminal42/contao-notification_center) support with custom notification types
 
+## Usage
+
+### Opt-In to Booking Requests
+To require double opt-in on booking requests, check the respective option on the resource booking archive in the backend
+and select your desired notification.
+
+In the notification's body, place a link to a page that handles the opt-in.
+
+On the opt-in page, include the provided opt-in content element to handle the opt-in process.
+On this page, you can also show your custom confirmation message.
 
 ## Developers
 
