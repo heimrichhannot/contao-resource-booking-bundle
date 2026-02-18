@@ -39,6 +39,7 @@ messages:
     opt_in_invalid: 'Invalid opt-in link.'
     opt_in_already_confirmed: 'You have already confirmed your booking.'
     opt_in_placeholder: 'Please confirm your booking by clicking the link in the email.'
+    mount_empty: 'No booking calendar available.'
 
 status:
     approved: 'Approved'

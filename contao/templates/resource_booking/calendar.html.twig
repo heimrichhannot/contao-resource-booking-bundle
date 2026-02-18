@@ -1,7 +1,13 @@
+{# @var mount_id string #}
+{# @var attributes Contao\CoreBundle\String\HtmlAttributes #}
+{# @var booking_archive \HeimrichHannot\ResourceBookingBundle\Model\BookingArchiveModel #}
+{# @var resource_archives \HeimrichHannot\ResourceBookingBundle\Model\ResourceArchiveModel[] #}
+{# @var resources \HeimrichHannot\ResourceBookingBundle\Model\ResourceModel[] #}
+
 {% block wrapper %}
     <div {{ attributes }}>
         {% block mount %}
-            MOUNT
+            {{ 'messages.mount_empty'|trans({}, 'huh_rb') }}
         {% endblock %}
     </div>
 {% endblock %}

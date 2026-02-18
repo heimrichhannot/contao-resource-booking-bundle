@@ -39,6 +39,7 @@ messages:
     opt_in_invalid: 'Ungültiger Opt-In-Link.'
     opt_in_already_confirmed: 'Sie haben Ihre Buchung bereits bestätigt.'
     opt_in_placeholder: 'Bitte bestätigen Sie Ihre Buchung durch Anklicken des Links in der E-Mail.'
+    mount_empty: 'Kein Buchungskalender verfügbar.'
 
 status:
     approved: 'Genehmigt'
