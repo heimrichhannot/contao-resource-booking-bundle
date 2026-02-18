@@ -7,22 +7,21 @@ use Codefog\HasteBundle\Util\ArrayPosition;
 use Contao\ContentModel;
 use Contao\CoreBundle\Controller\ContentElement\AbstractContentElementController;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsContentElement;
-use Contao\CoreBundle\Exception\RedirectResponseException;
+use Contao\CoreBundle\Routing\ContentUrlGenerator;
 use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\CoreBundle\Twig\FragmentTemplate;
 use Contao\FormModel;
+use Contao\PageModel;
 use HeimrichHannot\ResourceBookingBundle\Booking\Factory\BookingFactory;
 use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\BookingPipeline;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingArchiveModel;
-use HeimrichHannot\ResourceBookingBundle\Model\BookingModel;
 use HeimrichHannot\ResourceBookingBundle\Model\ResourceArchiveModel;
 use HeimrichHannot\ResourceBookingBundle\Model\ResourceModel;
 use HeimrichHannot\ResourceBookingBundle\Registry\BookingArchiveTypeRegistry;
-use RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[AsContentElement(self::TYPE, category: 'includes', template: 'content_element/resource_booking_form')]
 class BookingFormController extends AbstractContentElementController
@@ -32,8 +31,10 @@ class BookingFormController extends AbstractContentElementController
     public function __construct(
         private readonly BookingArchiveTypeRegistry $bookingArchiveTypeRegistry,
         private readonly BookingFactory             $bookingFactory,
-        private readonly ScopeMatcher               $scopeMatcher,
         private readonly BookingPipeline            $bookingPipeline,
+        private readonly ContentUrlGenerator        $contentUrlGenerator,
+        private readonly ScopeMatcher               $scopeMatcher,
+        private readonly TranslatorInterface        $translator,
     ) {}
 
     protected function getResponse(FragmentTemplate $template, ContentModel $model, Request $request): Response
@@ -52,20 +53,20 @@ class BookingFormController extends AbstractContentElementController
     {
         $formModel = $model->getRelated('rb_form');
         if (!$formModel instanceof FormModel) {
-            throw new NotFoundHttpException('No form found');
+            throw $this->createNotFoundException('No form found');
         }
 
         $bookingArchive = $model->getRelated('rb_bookingArchive');
         if (!$bookingArchive instanceof BookingArchiveModel) {
-            throw new NotFoundHttpException('No booking archive found');
+            throw $this->createNotFoundException('No booking archive found');
         }
 
         if (!$bookingArchiveType = $this->bookingArchiveTypeRegistry->get((string) $bookingArchive->type)) {
-            throw new NotFoundHttpException('No booking archive type found');
+            throw $this->createNotFoundException('No booking archive type found');
         }
 
         if (!$resourceArchivesRaw = $model->getRelated('rb_resourceArchives')) {
-            throw new NotFoundHttpException('No resource archives found');
+            throw $this->createNotFoundException('No resource archives found');
         }
 
         if (!$bookingArchive->published || !$resourceArchivesRaw->count()) {
@@ -112,14 +113,25 @@ class BookingFormController extends AbstractContentElementController
                     data: $form->fetchAll(),
                     allowedResources: \array_keys($resources)
                 );
-            } catch (RuntimeException $e) {
-                $this->addFlash('error', 'messages.invalid_submission');
+            } catch (\RuntimeException) {
+                $this->addFlash('error', $this->translator->trans('messages.submission_invalid', [], 'huh_rb'));
                 return $this->redirect($request->getRequestUri());
             }
 
             $this->bookingPipeline->process($booking);
 
-            return $this->redirect($request->getRequestUri());
+            $redirectUrl = $request->getRequestUri();
+
+            if ($formModel->jumpTo && $jumpToPage = PageModel::findByPk($formModel->jumpTo))
+            {
+                try {
+                    $redirectUrl = $this->contentUrlGenerator->generate($jumpToPage);
+                } catch (\Exception) {
+                    $redirectUrl = $request->getRequestUri();
+                }
+            }
+
+            return $this->redirect($redirectUrl);
         }
 
         $formHelper = $form->getHelperObject();

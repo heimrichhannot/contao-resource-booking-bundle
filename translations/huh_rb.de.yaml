@@ -32,6 +32,7 @@ messages:
     no_resources_booked: 'Keine Ressourcen gebucht.'
     submission_empty: 'Bitte treffen Sie Ihre Auswahl zur Buchung.'
     submission_no_range: 'Bitte wählen Sie einen Zeitraum aus.'
+    submission_invalid: 'Ihre Buchung konnte nicht erfolgreich verarbeitet werden. Bitte versuchen Sie es erneut oder kontaktieren Sie uns.'
     select_dates: 'Bitte wählen Sie im Kalender einen verfügbaren Zeitraum für Ihre Buchung aus.'
     invalid_dates: 'Bitte wählen Sie einen verfügbaren Zeitraum im Kalender aus.'
     opt_in_success: 'Sie haben Ihre Buchung erfolgreich bestätigt.'
@@ -47,5 +48,7 @@ status:
     'pending:opt_in': 'Nutzer-Opt-In ausstehend'
 
 ce:
+    form:
+        be_label: 'Gibt ein Formular für Ressourcenbuchung aus'
     opt_in:
         be_label: 'Verarbeitet Opt-In-Token in URLs für Ressourcenbuchungen'

@@ -18,6 +18,19 @@ readonly class BookingFactory
         private EventDispatcherInterface $eventDispatcher,
     ) {}
 
+    /**
+     * @param BookingArchiveModel $archive The booking archive.
+     * @param array{
+     *     rb_data: string,
+     *     email: string,
+     *     FORM_SUBMIT?: string,
+     *     REQUEST_TOKEN?: string,
+     *     ...string
+     * } $data The submitted form data.
+     * @param int[] $allowedResources The IDs of the resources that can be booked.
+     * @return BookingModel
+     * @throws \RuntimeException If the payload is invalid or the booking could not be created.
+     */
     public function createFromSubmittedData(
         BookingArchiveModel $archive,
         array               $data,

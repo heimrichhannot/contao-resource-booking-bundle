@@ -32,6 +32,7 @@ messages:
     no_resources_booked: 'No resources booked.'
     submission_empty: 'Please make a selection for your booking.'
     submission_no_range: 'Please select a time range.'
+    submission_invalid: 'Your booking could not be processed successfully. Please try again or contact us.'
     select_dates: 'Please select an available time range in the calendar for your booking.'
     invalid_dates: 'Please select an available time range in the calendar.'
     opt_in_success: 'You have successfully confirmed your booking.'
@@ -47,5 +48,7 @@ status:
     'pending:opt_in': 'User opt-in pending'
 
 ce:
+    form:
+        be_label: 'Renders a resource booking form'
     opt_in:
         be_label: 'Handles opt-in token in URL for resource booking'
