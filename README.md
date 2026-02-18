@@ -64,7 +64,7 @@ You SHOULD use the provided JavaScript module to select resources and set the re
 ```twig
 {% extends '@Contao/resource_booking/calendar.html.twig' %}
 
-// add custom attributes to the calendar root element (mount)
+{# add custom attributes to the calendar root element (mount) #}
 {% do attributes.mergeWith({'data-my-attr': 'whatever'}) %}
 
 {% block mount %}
@@ -73,11 +73,15 @@ You SHOULD use the provided JavaScript module to select resources and set the re
     {# @var resource_archives \HeimrichHannot\ResourceBookingBundle\Model\ResourceArchiveModel[] #}
     {# @var resources \HeimrichHannot\ResourceBookingBundle\Model\ResourceModel[] #}
 
-    Either render your custom calendar here using the provided template variables,
-    or use the provided JavaScript module to fetch the resources and time slots programmatically
-    to render them via JavaScript.
+    <p>
+        Either render your custom calendar here using the provided template variables,
+        or use the provided JavaScript module to fetch the resources and time slots programmatically
+        to render them via JavaScript.
+    </p>
 
-    Of course, you may also choose a hybrid approach, rendering some components via JavaScript and others via Twig.
+    <p>
+        Of course, you may also choose a hybrid approach, rendering some components via JavaScript and others via Twig.
+    </p>
 
 {% endblock %}
 
