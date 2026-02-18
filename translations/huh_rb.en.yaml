@@ -49,6 +49,6 @@ status:
 
 ce:
     form:
-        be_label: 'Renders a resource booking form'
+        be_label: 'Displays a form to book resources'
     opt_in:
-        be_label: 'Handles opt-in token in URL for resource booking'
+        be_label: 'Processes opt-in tokens in the URL for resource bookings'

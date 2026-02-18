@@ -15,7 +15,7 @@ $lang['alias'] = ['Alias', 'Der Alias des Kalenders.'];
 $lang['opt_in_legend'] = 'Opt-In-Einstellungen';
 $lang['requireOptIn'] = ['Opt-In erforderlich', 'Legt fest, ob der Benutzer ein E-Mail-Opt-In für die Buchung bestätigen muss.'];
 $lang['nc_optInRequest'] = ['Opt-In-Anfrage (Nachricht)', 'Die Nachricht, die versendet wird, wenn der Benutzer ein Opt-In anfordert.'];
-$lang['jumpToOptInCompleted'] = ['Weiterleitungsseite nach Opt-In', 'Die Seite, auf die der Benutzer zum Opt-In-Bestätigen weitergeleitet wird.'];
+$lang['jumpToOptInCompleted'] = ['Opt-In-Seite', 'Die Seite, auf die der Benutzer zum Opt-In-Bestätigen weitergeleitet wird.'];
 ###< opt_in_legend ###
 
 ###> approval_legend ###

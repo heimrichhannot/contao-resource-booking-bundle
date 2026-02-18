@@ -6,10 +6,10 @@ use HeimrichHannot\ResourceBookingBundle\Controller\ContentElement\OptInControll
 $lang = &$GLOBALS['TL_LANG'];
 
 $lang['CTE'][BookingFormController::TYPE] = [
-    'Ressourcenbuchungsformular [H&H Resource Booking]',
-    'Zeigt ein Formular zum Buchen von Ressourcen an.'
+    'Resource booking form [H&H Resource Booking]',
+    'Displays a form to book resources.'
 ];
 $lang['CTE'][OptInController::TYPE] = [
-    'Ressourcenbuchung Opt-In [H&H Resource Booking]',
-    'Verarbeitet Opt-In-Token in der URL für Ressourcenbuchungen.'
+    'Resource booking opt-in [H&H Resource Booking]',
+    'Processes opt-in tokens in the URL for resource bookings.'
 ];

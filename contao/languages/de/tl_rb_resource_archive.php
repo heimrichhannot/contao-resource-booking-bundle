@@ -1,8 +1,8 @@
 <?php
 
-use HeimrichHannot\ResourceBookingBundle\Contao\Table;
+use HeimrichHannot\ResourceBookingBundle\Model\ResourceArchiveModel;
 
-$lang = &$GLOBALS['TL_LANG'][Table::RESOURCE_ARCHIVE->value];
+$lang = &$GLOBALS['TL_LANG'][ResourceArchiveModel::getTable()];
 
 $lang['title_legend'] = 'Allgemeine Einstellungen';
 $lang['title'] = ['Titel', 'Der Titel unter dem dieses Ressourcenarchiv angezeigt wird.'];
