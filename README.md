@@ -61,7 +61,7 @@ It is crucial to understand, that within the calendar template, _you_ are respon
 
 You SHOULD use the provided JavaScript module to select resources and set the respective time slot.
 
-```html
+```twig
 {% extends '@Contao/resource_booking/calendar.html.twig' %}
 
 // add custom attributes to the calendar root element (mount)
