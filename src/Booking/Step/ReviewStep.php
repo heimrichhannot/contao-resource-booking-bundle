@@ -41,6 +41,24 @@ readonly class ReviewStep implements BookingStepInterface
             return $this->toNext($booking);
         }
 
+        if ($booking->get('reviewRequestedAt')) {
+            return StepResult::wait('Waiting for review');
+        }
+
+        $booking->status = self::getName();
+
+        if (!$this->sendReviewRequest($booking))
+        {
+            $booking->set('reviewRequestFailed', true);
+            $booking->save();
+
+            return StepResult::error('Failed to send review request');
+        }
+
+        $booking->unset('reviewRequestFailed');
+        $booking->set('reviewRequestedAt', \time());
+        $booking->save();
+
         return StepResult::wait('Waiting for review');
     }
 
@@ -52,6 +70,17 @@ readonly class ReviewStep implements BookingStepInterface
         }
 
         return StepResult::next();
+    }
+
+    public function sendReviewRequest(BookingModel $booking): bool
+    {
+        if (!$ncId = $booking->getArchive()?->nc_reviewRequest) {
+            return false;
+        }
+
+        $receipts = $this->nc->sendNotification($ncId, $booking->collectTokens());
+
+        return true;
     }
 
     public function review(BookingModel $booking, bool $approve): void

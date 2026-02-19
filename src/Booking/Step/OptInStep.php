@@ -154,10 +154,10 @@ readonly class OptInStep implements BookingStepInterface
 
         $token->confirm();
 
-        $booking->set('expiresAt', null);
         $booking->set('optedInAt', \time());
-        $booking->set('optInExpiresAt', null);
-        $booking->set('optInToken', null);
+        $booking->unset('expiresAt');
+        $booking->unset('optInExpiresAt');
+        $booking->unset('optInToken');
         $booking->save();
 
         return $booking;

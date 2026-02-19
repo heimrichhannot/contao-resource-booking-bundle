@@ -75,7 +75,8 @@ $dca['fields'] = [
         'filter' => true,
         'inputType' => 'select',
         'eval' => ['doNotCopy' => true, 'tl_class' => 'clr w100', 'chosen' => true],
-        'sql' => ['type' => 'string', 'length' => 64, 'default' => ''],
+        'default' => null,
+        'sql' => ['type' => 'string', 'length' => 64, 'default' => null, 'notnull' => false],
     ],
     'email' => [
         'exclude' => true,

@@ -58,27 +58,27 @@ class BookingModel extends Model
 
     public function getInternalState(): array
     {
-        return $this->internalState();
-    }
-
-    private function &internalState(): array
-    {
-        if (!\is_array($this->internalState)) {
-            $this->internalState = StringUtil::deserialize($this->internalState, true);
-        }
-
-        return $this->internalState;
+        return StringUtil::deserialize($this->internalState, true);
     }
 
     public function get(string $key, mixed $default = null): mixed
     {
-        return $this->internalState()[$key] ?? $default;
+        return $this->getInternalState()[$key] ?? $default;
     }
 
     public function set(string $key, mixed $value): self
     {
-        $this->internalState()[$key] = $value;
+        $state = $this->getInternalState();
+        $state[$key] = $value;
+        $this->internalState = \serialize($state);
+        return $this;
+    }
 
+    public function unset(string $key): self
+    {
+        $state = $this->getInternalState();
+        unset($state[$key]);
+        $this->internalState = \serialize($state);
         return $this;
     }
 
