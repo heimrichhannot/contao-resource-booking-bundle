@@ -47,6 +47,7 @@ status:
     rejected: 'Rejected'
     irresolute: 'Undecided'
     'pending:opt_in': 'User opt-in pending'
+    'pending:review': 'Awaiting review'
 
 ce:
     form:

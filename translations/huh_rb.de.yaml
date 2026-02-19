@@ -47,6 +47,7 @@ status:
     rejected: 'Abgelehnt'
     irresolute: 'Unentschieden'
     'pending:opt_in': 'Nutzer-Opt-In ausstehend'
+    'pending:review': 'Wartet auf Freigabe'
 
 ce:
     form:
