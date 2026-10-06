@@ -10,6 +10,8 @@ use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\CoreBundle\Twig\FragmentTemplate;
 use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\BookingPipeline;
 use HeimrichHannot\ResourceBookingBundle\Booking\Step\OptInStep;
+use HeimrichHannot\ResourceBookingBundle\Exception\OptInException;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -24,6 +26,7 @@ class OptInController extends AbstractContentElementController
         private readonly OptInStep           $optInStep,
         private readonly TranslatorInterface $translator,
         private readonly ScopeMatcher        $scopeMatcher,
+        private readonly LoggerInterface     $logger,
     ) {}
 
     protected function getResponse(FragmentTemplate $template, ContentModel $model, Request $request): Response
@@ -57,15 +60,31 @@ class OptInController extends AbstractContentElementController
 
         try
         {
-            $check = $this->optInStep->confirmToken($tokenId);
-            $template->set('confirmed', true);
-
-            $result = $this->pipeline->process($check);
-            $template->set('pipeline', $result);
+            $booking = $this->optInStep->confirmToken((string) $tokenId);
+        }
+        catch (OptInException $e)
+        {
+            $template->set('error', $e->getMessage());
+            return $template->getResponse();
         }
         catch (\Throwable $e)
         {
-            $template->set('error', $e->getMessage());
+            // Never show internal error details to visitors
+            $this->logger->error('Could not confirm booking opt-in.', ['exception' => $e]);
+            $template->set('error', $this->translator->trans('messages.opt_in_invalid', [], 'huh_rb'));
+            return $template->getResponse();
+        }
+
+        $template->set('confirmed', true);
+
+        try
+        {
+            $template->set('pipeline', $this->pipeline->process($booking));
+        }
+        catch (\Throwable $e)
+        {
+            // The opt-in is confirmed, the remaining steps can be retried by the pipeline command
+            $this->logger->error('Could not process booking after opt-in.', ['exception' => $e, 'booking' => $booking->id]);
         }
 
         return $template->getResponse();

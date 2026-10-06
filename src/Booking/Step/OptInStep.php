@@ -6,6 +6,7 @@ use Contao\CoreBundle\OptIn\OptIn;
 use Contao\CoreBundle\OptIn\OptInTokenInterface;
 use Contao\Validator;
 use HeimrichHannot\ResourceBookingBundle\Booking\StepResult;
+use HeimrichHannot\ResourceBookingBundle\Exception\OptInException;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingModel;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Terminal42\NotificationCenterBundle\NotificationCenter;
@@ -14,6 +15,10 @@ readonly class OptInStep implements BookingStepInterface
 {
     /** How long an unconfirmed booking reserves its period, in seconds */
     public const RESERVATION_TTL = 3600;
+
+    private const TOKEN_PREFIX = 'huhrb';
+    /** Contao opt-in tokens are 24 characters: the prefix, a dash and hexadecimal characters */
+    private const TOKEN_PATTERN = '/^huhrb-[0-9a-f]{18}$/';
 
     public static function getName(): string
     {
@@ -87,7 +92,7 @@ readonly class OptInStep implements BookingStepInterface
 
     private function createOptInToken(BookingModel $booking, string $email): OptInTokenInterface
     {
-        return $this->optIn->create('huhrb-', $email, [
+        return $this->optIn->create(self::TOKEN_PREFIX, $email, [
             $booking::getTable() => [ $booking->id ],
         ]);
     }
@@ -132,29 +137,43 @@ readonly class OptInStep implements BookingStepInterface
     }
 
     /**
-     * @param string $tokenId
-     * @return BookingModel
-     * @throws \InvalidArgumentException if the token ID is invalid or the token is not related to a booking
-     * @throws \RuntimeException if the token is already confirmed or the related booking is not found
+     * Confirms the opt-in of a booking.
+     *
+     * @throws OptInException with a translated message that is safe to show to the visitor
      */
     public function confirmToken(string $tokenId): BookingModel
     {
-        if (!$token = $this->optIn->find($tokenId)) {
-            throw new \InvalidArgumentException($this->trans->trans('messages.opt_in_invalid', [], 'huh_rb'));
+        if (!\preg_match(self::TOKEN_PATTERN, $tokenId) || !$token = $this->optIn->find($tokenId)) {
+            throw $this->optInException('messages.opt_in_invalid');
         }
 
         if ($token->isConfirmed()) {
-            throw new \RuntimeException($this->trans->trans('messages.opt_in_already_confirmed', [], 'huh_rb'));
+            throw $this->optInException('messages.opt_in_already_confirmed');
+        }
+
+        if (!$token->isValid()) {
+            throw $this->optInException('messages.opt_in_expired');
         }
 
         $related = $token->getRelatedRecords();
+        $bookingIds = $related[BookingModel::getTable()] ?? null;
 
-        if (!\count($related) || \key($related) !== BookingModel::getTable()) {
-            throw new \InvalidArgumentException($this->trans->trans('messages.opt_in_invalid', [], 'huh_rb'));
+        if (\count($related) !== 1 || !\is_array($bookingIds) || \count($bookingIds) !== 1) {
+            throw $this->optInException('messages.opt_in_invalid');
         }
 
-        if (!$booking = BookingModel::findById(\current($related))) {
-            throw new \RuntimeException($this->trans->trans('messages.opt_in_invalid', [], 'huh_rb'));
+        $booking = BookingModel::findByPk((int) \reset($bookingIds));
+
+        // The token must be the one currently issued for a booking that is still waiting for its opt-in
+        if (!$booking instanceof BookingModel
+            || $booking->status !== self::getName()
+            || $booking->get('optInToken') !== $token->getIdentifier())
+        {
+            throw $this->optInException('messages.opt_in_invalid');
+        }
+
+        if ($booking->expiresAt && (int) $booking->expiresAt < \time()) {
+            throw $this->optInException('messages.opt_in_expired');
         }
 
         $token->confirm();
@@ -166,5 +185,10 @@ readonly class OptInStep implements BookingStepInterface
         $booking->save();
 
         return $booking;
+    }
+
+    private function optInException(string $messageKey): OptInException
+    {
+        return new OptInException($this->trans->trans($messageKey, [], 'huh_rb'));
     }
 }
