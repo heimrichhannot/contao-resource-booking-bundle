@@ -2,9 +2,12 @@
 
 namespace HeimrichHannot\ResourceBookingBundle\Booking\Factory;
 
+use Contao\Validator;
 use Doctrine\DBAL\Connection;
+use HeimrichHannot\ResourceBookingBundle\Booking\Payload\BookingPayloadParser;
 use HeimrichHannot\ResourceBookingBundle\Contao\Table;
 use HeimrichHannot\ResourceBookingBundle\Event\BookingUuidGeneratedEvent;
+use HeimrichHannot\ResourceBookingBundle\Exception\InvalidBookingPayloadException;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingArchiveModel;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingModel;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingResourceModel;
@@ -13,11 +16,15 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 readonly class BookingFactory
 {
-    private const MAX_TIMESTAMP = 9999999999;
+    /** Length of tl_rb_booking.email */
+    private const MAX_EMAIL_LENGTH = 255;
+    /** tl_rb_booking.data is a BLOB (64 KiB) */
+    private const MAX_DATA_BYTES = 60000;
 
     public function __construct(
         private Connection               $connection,
         private EventDispatcherInterface $eventDispatcher,
+        private BookingPayloadParser     $payloadParser,
     ) {}
 
     /**
@@ -31,61 +38,26 @@ readonly class BookingFactory
      * } $data The submitted form data.
      * @param int[] $allowedResources The IDs of the resources that can be booked.
      * @return BookingModel
-     * @throws \RuntimeException If the payload is invalid or the booking could not be created.
+     * @throws InvalidBookingPayloadException If the submitted data is invalid.
+     * @throws \RuntimeException If the booking could not be created.
      */
     public function createFromSubmittedData(
         BookingArchiveModel $archive,
         array               $data,
         array               $allowedResources
     ): BookingModel {
-        try {
-            $payloadData = (string) ($data['rb_data'] ?? '');
-            if (\str_contains($payloadData, '&#')) {
-                $payloadData = \html_entity_decode($payloadData);
-            }
-            $payload = \json_decode($payloadData, true, 512, \JSON_THROW_ON_ERROR);
-        } catch (\JsonException $e) {
-            throw new \RuntimeException('Could not decode JSON payload.');
-        }
+        $payload = $this->payloadParser->parse(
+            raw: \is_string($data['rb_data'] ?? null) ? $data['rb_data'] : '',
+            allowedResourceIds: $allowedResources,
+            timezone: new \DateTimeZone(\date_default_timezone_get()),
+        );
 
-        if (!\is_array($payload)
-            || !($resources = $payload['resources'] ?? null)
-            || !\is_array($resources)
-            || !($start = $payload['start'] ?? null)
-            || !\is_string($start)
-            || !($end = $payload['end'] ?? null)
-            || !\is_string($end))
+        $email = \is_string($data['email'] ?? null) ? \html_entity_decode($data['email']) : '';
+        if (\strlen($email) > self::MAX_EMAIL_LENGTH
+            || !\filter_var($email, \FILTER_VALIDATE_EMAIL)
+            || !Validator::isEmail($email))
         {
-            throw new \RuntimeException('JSON payload does not contain required fields (resources, start, end).');
-        }
-
-        $start = \DateTimeImmutable::createFromFormat(\DATE_RFC3339_EXTENDED, $start);
-        $end = \DateTimeImmutable::createFromFormat(\DATE_RFC3339_EXTENDED, $end);
-
-        if (!$start || !$end) {
-            throw new \RuntimeException('Invalid date format for start or end.');
-        }
-
-        // The format accepts years with fewer than four digits ("21-09-25" is year 0021), so check the range explicitly.
-        // Timestamps are stored as strings of length 10, anything beyond would fail on save.
-        if ($start > $end
-            || $start < new \DateTimeImmutable('today')
-            || $end->getTimestamp() > self::MAX_TIMESTAMP)
-        {
-            throw new \RuntimeException('Start or end is out of range.');
-        }
-
-        $resources = \array_map(static fn ($value) => \is_array($value) ? (int) ($value['id'] ?? 0) : 0, $resources);
-        $allowedResources = \array_map('\intval', $allowedResources);
-        $resources = \array_unique(\array_intersect($resources, $allowedResources));
-
-        if (!$resources) {
-            throw new \RuntimeException('No bookable resources selected.');
-        }
-
-        $email = \html_entity_decode($data['email'] ?? '');
-        if (!$email || !\filter_var($email, \FILTER_VALIDATE_EMAIL)) {
-            throw new \RuntimeException('messages.invalid_submission');
+            throw new InvalidBookingPayloadException('Invalid email address.');
         }
 
         unset($data['rb_data'], $data['email'], $data['FORM_SUBMIT'], $data['REQUEST_TOKEN']);
@@ -96,18 +68,23 @@ readonly class BookingFactory
                 : null /* skip non-string values */
         );
 
+        $serializedData = \serialize($data);
+        if (\strlen($serializedData) > self::MAX_DATA_BYTES) {
+            throw new InvalidBookingPayloadException('Submitted form data is too large.');
+        }
+
         $booking = new BookingModel();
         $booking->tstamp = \time();
         $booking->pid = $archive->id;
         $booking->email = $email;
-        $booking->start = $start->getTimestamp();
-        $booking->end = $end->getTimestamp();
-        $booking->data = \serialize($data);
+        $booking->start = $payload->start->getTimestamp();
+        $booking->end = $payload->end->getTimestamp();
+        $booking->data = $serializedData;
         $booking->status = '';
         $booking->uuid = $this->createBookingUuid($booking->row());
         $booking->save();
 
-        foreach ($resources as $resource) {
+        foreach ($payload->resourceIds as $resource) {
             $bookingResource = new BookingResourceModel();
             $bookingResource->tstamp = \time();
             $bookingResource->pid = $booking->id;
