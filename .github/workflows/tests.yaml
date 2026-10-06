@@ -2,9 +2,10 @@ name: Tests
 
 on:
   pull_request:
+  # Pull requests are covered above, so pushes only trigger on the main branch (no duplicate runs)
   push:
-    branches-ignore:
-      - 'docs/**'
+    branches:
+      - main
     paths:
       - '**.php'
       - 'composer.json'
@@ -42,7 +43,7 @@ jobs:
 
       - name: Restore Composer cache
         id: composer-cache-restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: composer-${{ matrix.php }}-${{ hashFiles('composer.json') }}
@@ -54,7 +55,7 @@ jobs:
 
       - name: Save Composer cache
         if: always() && steps.composer-cache-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: composer-${{ matrix.php }}-${{ hashFiles('composer.json') }}
