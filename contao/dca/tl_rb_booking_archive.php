@@ -12,6 +12,7 @@ $dca = &$GLOBALS['TL_DCA'][$table];
 
 $dca['palettes']['__selector__'] = ['requireOptIn', 'requireReview'];
 $dca['palettes']['default'] = '{title_legend},title,type,alias;'
+    . '{limits_legend},minAdvanceDays,maxAdvanceDays,maxDurationDays;'
     . '{opt_in_legend},requireOptIn;'
     . '{approval_legend},requireReview;'
     . '{template_legend},customTpl;'
@@ -92,6 +93,14 @@ $fieldNotification = static fn (bool $mandatory): array => [
     'sql' => ['type' => 'integer', 'default' => 0, 'unsigned' => true],
 ];
 
+$fieldDays = static fn (int $default, int $minval): array => [
+    'exclude' => true,
+    'inputType' => 'text',
+    'default' => $default,
+    'eval' => ['mandatory' => true, 'rgxp' => 'natural', 'minval' => $minval, 'maxval' => 3650, 'maxlength' => 4, 'tl_class' => 'w33'],
+    'sql' => ['type' => 'integer', 'unsigned' => true, 'default' => $default, 'notnull' => true],
+];
+
 $fieldJumpTo = [
     'inputType' => 'pageTree',
     'foreignKey' => 'tl_page.title',
@@ -168,6 +177,9 @@ $dca['fields'] = [
             'customSchemaOptions' => ['collation' => 'ascii_bin'],
         ],
     ],
+    'minAdvanceDays' => $fieldDays(default: 1, minval: 0),
+    'maxAdvanceDays' => $fieldDays(default: 365, minval: 1),
+    'maxDurationDays' => $fieldDays(default: 30, minval: 1),
     'requireOptIn' => $fieldRequire,
     'requireReview' => $fieldRequire,
     'nc_optInRequest' => $fieldNotification(mandatory: false),

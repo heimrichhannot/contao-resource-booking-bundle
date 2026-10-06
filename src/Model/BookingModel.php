@@ -16,7 +16,7 @@ use HeimrichHannot\ResourceBookingBundle\Contao\Table;
  * @property string $uuid
  * @property array|string|null $data
  * @property array|string|null $internalState
- * @property int $expiresAt
+ * @property int|string|null $expiresAt Unix timestamp until which an unconfirmed booking reserves its period
  * @property int $start
  * @property int $end
  */

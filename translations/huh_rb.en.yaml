@@ -33,6 +33,8 @@ messages:
     submission_empty: 'Please make a selection for your booking.'
     submission_no_range: 'Please select a time range.'
     submission_invalid: 'Your booking could not be processed successfully. Please try again or contact us.'
+    too_many_requests: 'Too many booking requests. Please try again later.'
+    booking_unavailable: 'The selected period is no longer available for at least one resource. Please choose another period.'
     select_dates: 'Please select an available time range in the calendar for your booking.'
     invalid_dates: 'Please select an available time range in the calendar.'
     opt_in_success: 'You have successfully confirmed your booking.'

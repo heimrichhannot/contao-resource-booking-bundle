@@ -12,6 +12,9 @@ use Terminal42\NotificationCenterBundle\NotificationCenter;
 
 readonly class OptInStep implements BookingStepInterface
 {
+    /** How long an unconfirmed booking reserves its period, in seconds */
+    public const RESERVATION_TTL = 3600;
+
     public static function getName(): string
     {
         return 'pending:opt_in';
@@ -64,9 +67,11 @@ readonly class OptInStep implements BookingStepInterface
             $token = $this->createOptInToken($booking, $email);
             $this->sendOptInRequestEmail($booking, $email, $token);
 
-            $expiresAt = \time() + 3600; // 1 hour
+            $expiresAt = \time() + self::RESERVATION_TTL;
 
             $booking->status = self::getName();
+            // Unconfirmed bookings only reserve their period until the opt-in expires (see BlockingBookingQuery)
+            $booking->expiresAt = $expiresAt;
             $booking->set('optInToken', $token->getIdentifier());
             $booking->set('optInExpiresAt', $expiresAt);
             $booking->set('reservationExpiresAt', $expiresAt);
@@ -155,7 +160,7 @@ readonly class OptInStep implements BookingStepInterface
         $token->confirm();
 
         $booking->set('optedInAt', \time());
-        $booking->unset('expiresAt');
+        $booking->expiresAt = null;
         $booking->unset('optInExpiresAt');
         $booking->unset('optInToken');
         $booking->save();

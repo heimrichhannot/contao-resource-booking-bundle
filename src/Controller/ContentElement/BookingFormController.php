@@ -14,12 +14,15 @@ use Contao\FormModel;
 use Contao\PageModel;
 use HeimrichHannot\ResourceBookingBundle\Booking\Factory\BookingFactory;
 use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\BookingPipeline;
+use HeimrichHannot\ResourceBookingBundle\Exception\BookingUnavailableException;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingArchiveModel;
 use HeimrichHannot\ResourceBookingBundle\Model\ResourceArchiveModel;
 use HeimrichHannot\ResourceBookingBundle\Model\ResourceModel;
 use HeimrichHannot\ResourceBookingBundle\Registry\BookingArchiveTypeRegistry;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -35,6 +38,10 @@ class BookingFormController extends AbstractContentElementController
         private readonly ContentUrlGenerator        $contentUrlGenerator,
         private readonly ScopeMatcher               $scopeMatcher,
         private readonly TranslatorInterface        $translator,
+        #[Autowire(service: 'limiter.huh_rb_booking_client')]
+        private readonly RateLimiterFactory         $clientLimiter,
+        #[Autowire(service: 'limiter.huh_rb_booking_email')]
+        private readonly RateLimiterFactory         $emailLimiter,
     ) {}
 
     protected function getResponse(FragmentTemplate $template, ContentModel $model, Request $request): Response
@@ -105,14 +112,32 @@ class BookingFormController extends AbstractContentElementController
 
         $form = $this->makeHasteForm($model, $formModel);
 
+        if ($form->isSubmitted()
+            && !$this->clientLimiter->create($request->getClientIp() ?? 'unknown')->consume()->isAccepted())
+        {
+            $this->addFlash('error', $this->translator->trans('messages.too_many_requests', [], 'huh_rb'));
+            return $this->redirect($request->getRequestUri());
+        }
+
         if ($form->validate())
         {
+            $data = $form->fetchAll();
+            $emailKey = \hash('sha256', \mb_strtolower(\trim(\html_entity_decode((string) ($data['email'] ?? '')))));
+
+            if (!$this->emailLimiter->create($emailKey)->consume()->isAccepted()) {
+                $this->addFlash('error', $this->translator->trans('messages.too_many_requests', [], 'huh_rb'));
+                return $this->redirect($request->getRequestUri());
+            }
+
             try {
                 $booking = $this->bookingFactory->createFromSubmittedData(
                     archive: $bookingArchive,
-                    data: $form->fetchAll(),
+                    data: $data,
                     allowedResources: \array_keys($resources)
                 );
+            } catch (BookingUnavailableException) {
+                $this->addFlash('error', $this->translator->trans('messages.booking_unavailable', [], 'huh_rb'));
+                return $this->redirect($request->getRequestUri());
             } catch (\RuntimeException) {
                 $this->addFlash('error', $this->translator->trans('messages.submission_invalid', [], 'huh_rb'));
                 return $this->redirect($request->getRequestUri());

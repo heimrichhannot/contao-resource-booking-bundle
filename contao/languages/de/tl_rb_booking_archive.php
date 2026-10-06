@@ -11,6 +11,13 @@ $lang['type'] = ['Art der Kalenderbuchung', 'Der Typ des Kalenders, der für die
 $lang['alias'] = ['Alias', 'Der Alias des Kalenders.'];
 ###< title_legend ###
 
+###> limits_legend ###
+$lang['limits_legend'] = 'Buchungsgrenzen';
+$lang['minAdvanceDays'] = ['Mindestvorlauf (Tage)', 'Frühester Buchungsbeginn in Tagen ab heute. 1 = frühestens morgen, 0 = auch heute.'];
+$lang['maxAdvanceDays'] = ['Maximaler Vorlauf (Tage)', 'Spätestes Buchungsende in Tagen ab heute. Muss größer als der Mindestvorlauf sein.'];
+$lang['maxDurationDays'] = ['Maximale Dauer (Tage)', 'Maximale Anzahl gebuchter Tage, inklusive erstem und letztem Tag.'];
+###< limits_legend ###
+
 ###> opt_in_legend ###
 $lang['opt_in_legend'] = 'Opt-In-Einstellungen';
 $lang['requireOptIn'] = ['Opt-In erforderlich', 'Legt fest, ob der Benutzer ein E-Mail-Opt-In für die Buchung bestätigen muss.'];

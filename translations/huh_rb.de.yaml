@@ -33,6 +33,8 @@ messages:
     submission_empty: 'Bitte treffen Sie Ihre Auswahl zur Buchung.'
     submission_no_range: 'Bitte wählen Sie einen Zeitraum aus.'
     submission_invalid: 'Ihre Buchung konnte nicht erfolgreich verarbeitet werden. Bitte versuchen Sie es erneut oder kontaktieren Sie uns.'
+    too_many_requests: 'Zu viele Buchungsanfragen. Bitte versuchen Sie es später erneut.'
+    booking_unavailable: 'Der gewählte Zeitraum ist für mindestens eine Ressource nicht mehr verfügbar. Bitte wählen Sie einen anderen Zeitraum.'
     select_dates: 'Bitte wählen Sie im Kalender einen verfügbaren Zeitraum für Ihre Buchung aus.'
     invalid_dates: 'Bitte wählen Sie einen verfügbaren Zeitraum im Kalender aus.'
     opt_in_success: 'Sie haben Ihre Buchung erfolgreich bestätigt.'

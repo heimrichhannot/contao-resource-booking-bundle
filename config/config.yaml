@@ -1,4 +1,14 @@
 framework:
+    # Limits booking form submissions. Override the limits in the project's config.yaml if needed.
+    rate_limiter:
+        huh_rb_booking_client:
+            policy: sliding_window
+            limit: 5
+            interval: '1 hour'
+        huh_rb_booking_email:
+            policy: sliding_window
+            limit: 3
+            interval: '1 hour'
     assets:
         packages:
             huh_rb_build:
