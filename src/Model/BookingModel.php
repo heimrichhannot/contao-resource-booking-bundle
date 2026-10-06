@@ -2,6 +2,8 @@
 
 namespace HeimrichHannot\ResourceBookingBundle\Model;
 
+use Contao\Input;
+use Contao\InputEncodingMode;
 use Contao\Model;
 use Contao\StringUtil;
 use HeimrichHannot\ResourceBookingBundle\Contao\Table;
@@ -82,6 +84,12 @@ class BookingModel extends Model
         return $this;
     }
 
+    /**
+     * Tokens for notifications.
+     *
+     * Values are encoded like Contao encodes submitted form values ("<" and insert tags), because the stored booking
+     * data is decoded and contains user input. Without this, HTML notifications would contain the visitor's raw HTML.
+     */
     public function collectTokens(): array
     {
         $tokens = ['email' => $this->email];
@@ -101,6 +109,15 @@ class BookingModel extends Model
             $tokens['data_' . $key] = $value;
         }
 
-        return $tokens;
+        return \array_map(self::encodeTokenValue(...), $tokens);
+    }
+
+    private static function encodeTokenValue(mixed $value): mixed
+    {
+        if (\is_array($value)) {
+            return \array_map(self::encodeTokenValue(...), $value);
+        }
+
+        return \is_string($value) ? Input::encodeInput($value, InputEncodingMode::encodeLessThanSign) : $value;
     }
 }
