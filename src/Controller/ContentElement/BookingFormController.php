@@ -199,6 +199,12 @@ class BookingFormController extends AbstractContentElementController
                 'mount' => "#{$mountId}",
                 'dataInput' => "#{$formHelper->formId} input[name=rb_data]",
             ],
+            // Only for the calendar UI, the server enforces the limits itself
+            'limits' => [
+                'min_advance_days' => (int) $bookingArchive->minAdvanceDays,
+                'max_advance_days' => (int) $bookingArchive->maxAdvanceDays,
+                'max_duration_days' => (int) $bookingArchive->maxDurationDays,
+            ],
         ];
         $template->set('js_root_data', $jsRoot);
 

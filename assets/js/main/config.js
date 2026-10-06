@@ -56,10 +56,18 @@ function assertNoUnknownKeys(obj, allowedKeys, path) {
  */
 
 /**
+ * @typedef {object} limits
+ * @property {number} min_advance_days
+ * @property {number} max_advance_days
+ * @property {number} max_duration_days
+ */
+
+/**
  * @typedef {object} BookingFormConfig
  * @property {selectors} selectors
  * @property {ref} ref
  * @property {api} api
+ * @property {limits} limits
  */
 
 /**
@@ -71,7 +79,7 @@ function assertNoUnknownKeys(obj, allowedKeys, path) {
 export function validateConfig(config, contextPath = "config") {
     // Root object
     assertObject(config, contextPath);
-    assertNoUnknownKeys(config, ["api", "selectors", "ref"], contextPath);
+    assertNoUnknownKeys(config, ["api", "selectors", "ref", "limits"], contextPath);
 
     // api
     assertObject(config.api, `${contextPath}.api`);
@@ -105,6 +113,14 @@ export function validateConfig(config, contextPath = "config") {
     assertInt(config.ref.booking_archive, `${contextPath}.ref.booking_archive`);
     assertInt(config.ref.form, `${contextPath}.ref.form`);
     assertIntArray(config.ref.resource_archives, `${contextPath}.ref.resource_archives`);
+
+    // limits
+    if (!("limits" in config)) throw new TypeError(`${contextPath}.limits is required`);
+    assertObject(config.limits, `${contextPath}.limits`);
+    assertNoUnknownKeys(config.limits, ["min_advance_days", "max_advance_days", "max_duration_days"], `${contextPath}.limits`);
+    assertInt(config.limits.min_advance_days, `${contextPath}.limits.min_advance_days`);
+    assertInt(config.limits.max_advance_days, `${contextPath}.limits.max_advance_days`);
+    assertInt(config.limits.max_duration_days, `${contextPath}.limits.max_duration_days`);
 }
 
 /**

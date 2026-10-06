@@ -3,6 +3,26 @@ import AirDatepicker from 'air-datepicker';
 import localeEn from 'air-datepicker/locale/en';
 import localeDe from 'air-datepicker/locale/de';
 
+/**
+ * Decodes HTML entities of a stored text without interpreting it as markup.
+ * @param {string} text
+ * @return {string}
+ */
+function decodeEntities(text) {
+    return new DOMParser().parseFromString(String(text ?? ''), 'text/html').documentElement.textContent;
+}
+
+/**
+ * @param {number} days
+ * @return {Date} Midnight (local time) of the day that is the given number of days from today.
+ */
+function daysFromToday(days) {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    date.setHours(0, 0, 0, 0);
+    return date;
+}
+
 export default class ConsecutiveDays {
     #disabledRanges = null;
 
@@ -52,21 +72,37 @@ export default class ConsecutiveDays {
         elm.innerHTML = `
             <div class="rb-selection">
                 <fieldset class="rb-resources">
-                    <legend>${this.labels.resources}</legend>
-                    ${this.resources.map(r => {
-                        const id = `${this.$mount.id}-r${r.id}`;
-                        return `
-                            <label for="${id}" class="rb-resource-label">
-                                <input type="checkbox" class="rb-resource-cbx" id="${id}" value="${r.id}">
-                                <span>${r.title}</span>
-                            </label>
-                        `;
-                    }).join('')}
+                    <legend></legend>
                 </fieldset>
                 <div class="rb-picked-dates"></div>
             </div>
             <div class="rb-airdatepicker" data-rb-slot="calendar"></div>
         `;
+
+        // Labels and resource titles are data, never markup
+        const $fieldset = elm.querySelector('.rb-resources');
+        $fieldset.querySelector('legend').textContent = decodeEntities(this.labels.resources);
+
+        for (const r of this.resources) {
+            const id = `${this.$mount.id}-r${Number.parseInt(r.id)}`;
+
+            const $label = document.createElement('label');
+            $label.htmlFor = id;
+            $label.className = 'rb-resource-label';
+
+            const $cbx = document.createElement('input');
+            $cbx.type = 'checkbox';
+            $cbx.className = 'rb-resource-cbx';
+            $cbx.id = id;
+            $cbx.value = String(Number.parseInt(r.id));
+
+            const $title = document.createElement('span');
+            $title.textContent = decodeEntities(r.title);
+
+            $label.append($cbx, $title);
+            $fieldset.append($label);
+        }
+
         this.$mount.appendChild(elm);
         this.$calWrapper = elm.querySelector('[data-rb-slot="calendar"]');
         this.air = this.initCalendar(this.$calWrapper);
@@ -136,16 +172,17 @@ export default class ConsecutiveDays {
     }
 
     initCalendar($elm) {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
+        const { min_advance_days, max_advance_days } = this.bookingForm.config.limits;
+        const minDate = daysFromToday(min_advance_days);
+        const maxDate = daysFromToday(max_advance_days);
 
         const air = new AirDatepicker($elm, {
             locale: this.options.airDatepicker?.locale ?? localeEn,
             inline: true,
             range: true,
             timepicker: false,
-            minDate: tomorrow,
+            minDate,
+            maxDate,
             multipleDatesSeparator: '--',
             onSelect: ({ datepicker }) => {
                 this.renderPickedDates();
@@ -272,6 +309,12 @@ export default class ConsecutiveDays {
         const t2 = otherDate.getTime();
         const selStart = Math.min(t1, t2);
         const selEnd = Math.max(t1, t2);
+
+        // Booked days including the first and the last day (rounded to ignore DST shifts)
+        const days = Math.round((selEnd - selStart) / 86400000) + 1;
+        if (days > this.bookingForm.config.limits.max_duration_days) {
+            return false;
+        }
 
         // Check for Overlap against disabledRanges
         for (const range of this.disabledRanges) {
