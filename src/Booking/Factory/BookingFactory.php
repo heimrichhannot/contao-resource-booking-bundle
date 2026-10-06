@@ -13,6 +13,8 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 readonly class BookingFactory
 {
+    private const MAX_TIMESTAMP = 9999999999;
+
     public function __construct(
         private Connection               $connection,
         private EventDispatcherInterface $eventDispatcher,
@@ -64,6 +66,23 @@ readonly class BookingFactory
             throw new \RuntimeException('Invalid date format for start or end.');
         }
 
+        // The format accepts years with fewer than four digits ("21-09-25" is year 0021), so check the range explicitly.
+        // Timestamps are stored as strings of length 10, anything beyond would fail on save.
+        if ($start > $end
+            || $start < new \DateTimeImmutable('today')
+            || $end->getTimestamp() > self::MAX_TIMESTAMP)
+        {
+            throw new \RuntimeException('Start or end is out of range.');
+        }
+
+        $resources = \array_map(static fn ($value) => \is_array($value) ? (int) ($value['id'] ?? 0) : 0, $resources);
+        $allowedResources = \array_map('\intval', $allowedResources);
+        $resources = \array_unique(\array_intersect($resources, $allowedResources));
+
+        if (!$resources) {
+            throw new \RuntimeException('No bookable resources selected.');
+        }
+
         $email = \html_entity_decode($data['email'] ?? '');
         if (!$email || !\filter_var($email, \FILTER_VALIDATE_EMAIL)) {
             throw new \RuntimeException('messages.invalid_submission');
@@ -87,10 +106,6 @@ readonly class BookingFactory
         $booking->status = '';
         $booking->uuid = $this->createBookingUuid($booking->row());
         $booking->save();
-
-        $resources = \array_map(static fn (array $value) => (int) ($value['id'] ?? 0), $resources);
-        $allowedResources = \array_map('\intval', $allowedResources);
-        $resources = \array_intersect($resources, $allowedResources);
 
         foreach ($resources as $resource) {
             $bookingResource = new BookingResourceModel();
