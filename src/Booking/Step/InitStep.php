@@ -33,8 +33,9 @@ readonly class InitStep implements BookingStepInterface
             return StepResult::error('Archive not found');
         }
 
+        // Not a failure: the visitor did not confirm in time, and the booking no longer blocks its period
         if ($booking->expiresAt && $booking->expiresAt < \time()) {
-            return StepResult::error('Reservation expired at ' . \date('Y-m-d H:i:s', $booking->expiresAt));
+            return StepResult::cancel('Reservation expired at ' . \date('Y-m-d H:i:s', (int) $booking->expiresAt));
         }
 
         if ($booking->status === self::getName()) {

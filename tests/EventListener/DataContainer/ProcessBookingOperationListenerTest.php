@@ -103,6 +103,16 @@ class ProcessBookingOperationListenerTest extends TestCase
         $this->assertStringContainsString('&lt;b&gt;&quot;x&quot;&lt;\\/b&gt;', $this->messages[0][1]);
     }
 
+    public function testReportsABookingThatWasNotProcessedFurther(): void
+    {
+        $booking = new FakeBookingModel(['id' => 1, 'processingFailed' => '1']);
+
+        $this->processRequest($booking, StepResult::cancel('Reservation expired'));
+
+        $this->assertFalse($booking->processingFailed);
+        $this->assertSame([['info', 'backend.process_cancelled {"%id%":1,"%reason%":"Reservation expired"}']], $this->messages);
+    }
+
     private function processRequest(BookingModel $booking, StepResult $stepResult): void
     {
         $request = new Request(['key' => 'process', 'id' => (string) $booking->id, 'rt' => 'valid']);
@@ -174,9 +184,10 @@ class ProcessBookingOperationListenerTest extends TestCase
         $models = $this->adapter(['findByPk']);
         $models->method('findByPk')->willReturn($booking);
 
-        $message = $this->adapter(['addError', 'addConfirmation']);
+        $message = $this->adapter(['addError', 'addConfirmation', 'addInfo']);
         $message->method('addError')->willReturnCallback(function (string $text): void { $this->messages[] = ['error', $text]; });
         $message->method('addConfirmation')->willReturnCallback(function (string $text): void { $this->messages[] = ['confirmation', $text]; });
+        $message->method('addInfo')->willReturnCallback(function (string $text): void { $this->messages[] = ['info', $text]; });
 
         $adapters = [
             BookingModel::class => $models,

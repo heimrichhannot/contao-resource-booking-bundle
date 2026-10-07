@@ -68,15 +68,21 @@ readonly class ProcessBookingOperationListener
 
         $message = $this->framework->getAdapter(Message::class);
 
-        // Hiding the button is not enough: processing a booking that did not fail could flag an expired one
+        // Hiding the button is not enough: only failed bookings are meant to be processed again
         if (empty($booking->processingFailed)) {
             $message->addError($this->translator->trans('backend.process_not_failed', ['%id%' => $bookingId], 'huh_rb'));
-        } elseif ($this->bookingProcessor->processPending($booking)) {
-            $message->addConfirmation($this->translator->trans('backend.process_succeeded', ['%id%' => $bookingId], 'huh_rb'));
         } else {
+            $result = $this->bookingProcessor->processPending($booking);
             // Contao prints messages as HTML, and the reason can contain an exception message
-            $reason = \htmlspecialchars((string) $booking->get('processingError'));
-            $message->addError($this->translator->trans('backend.process_failed', ['%id%' => $bookingId, '%reason%' => $reason], 'huh_rb'));
+            $reason = \htmlspecialchars((string) $result->message());
+
+            if ($result->isError()) {
+                $message->addError($this->translator->trans('backend.process_failed', ['%id%' => $bookingId, '%reason%' => $reason], 'huh_rb'));
+            } elseif ($result->isCancel()) {
+                $message->addInfo($this->translator->trans('backend.process_cancelled', ['%id%' => $bookingId, '%reason%' => $reason], 'huh_rb'));
+            } else {
+                $message->addConfirmation($this->translator->trans('backend.process_succeeded', ['%id%' => $bookingId], 'huh_rb'));
+            }
         }
 
         $this->framework->getAdapter(Controller::class)->redirect($this->framework->getAdapter(System::class)->getReferer());

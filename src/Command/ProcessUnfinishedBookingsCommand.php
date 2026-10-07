@@ -90,11 +90,14 @@ class ProcessUnfinishedBookingsCommand extends Command implements ServiceSubscri
             $io->text(\sprintf('├─Processing booking...'));
 
             // Like "Process again" in the backend, so the processingFailed flag stays in sync
-            if ($processor->processPending($model)) {
-                $io->text('├─Booking processed.');
-            } else {
-                $io->text(\sprintf('├─Processing failed, flagged the booking: "%s"', $model->get('processingError')));
-            }
+            $result = $processor->processPending($model);
+
+            $io->text(\sprintf(
+                '├─Booking processed with result "%s"%s: %s',
+                $result->action(),
+                $result->isError() ? ' (flagged for the editors)' : '',
+                $result->message() ? "\"{$result->message()}\"" : '(No message provided)'
+            ));
             $io->text(\sprintf('└[ID=%d status="%s"]', $model->id, $model->status));
 
             $io->newLine();

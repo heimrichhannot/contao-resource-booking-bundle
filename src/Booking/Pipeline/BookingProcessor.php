@@ -3,6 +3,7 @@
 namespace HeimrichHannot\ResourceBookingBundle\Booking\Pipeline;
 
 use HeimrichHannot\ResourceBookingBundle\Booking\Factory\BookingFactory;
+use HeimrichHannot\ResourceBookingBundle\Booking\StepResult;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingModel;
 use Psr\Log\LoggerInterface;
 
@@ -28,11 +29,13 @@ final readonly class BookingProcessor
      */
     public function processSubmitted(BookingModel $booking): bool
     {
-        if (null === $error = $this->run($booking)) {
+        $result = $this->run($booking);
+
+        if (!$result->isError()) {
             return true;
         }
 
-        $this->logger->error('Booking processing failed, discarding it: ' . $error, ['booking' => $booking->id]);
+        $this->logger->error('Booking processing failed, discarding it: ' . $result->message(), ['booking' => $booking->id]);
         $this->discard((int) $booking->id);
 
         return false;
@@ -43,22 +46,26 @@ final readonly class BookingProcessor
      * processes it again.
      *
      * If processing fails, the booking is kept, since the visitor already confirmed it, and flagged with the reason
-     * (processingFailed), so the editors see it in the backend and can process it again.
+     * (processingFailed), so the editors see it in the backend and can process it again. Any other result, e.g. a
+     * cancelled booking whose reservation expired, clears the flag.
      *
-     * @return bool Whether processing succeeded.
+     * @return StepResult The result of the pipeline, an error if processing failed.
      */
-    public function processPending(BookingModel $booking): bool
+    public function processPending(BookingModel $booking): StepResult
     {
-        if (null === $error = $this->run($booking)) {
+        $result = $this->run($booking);
+
+        if (!$result->isError()) {
             if ($booking->processingFailed) {
                 $booking->processingFailed = false;
                 $booking->unset('processingError');
                 $booking->save();
             }
 
-            return true;
+            return $result;
         }
 
+        $error = (string) $result->message();
         $this->logger->error('Booking processing failed, flagged it for the editors: ' . $error, ['booking' => $booking->id]);
 
         try {
@@ -69,23 +76,21 @@ final readonly class BookingProcessor
             $this->logger->critical('Could not flag a booking whose processing failed.', ['exception' => $e, 'booking' => $booking->id]);
         }
 
-        return false;
+        return $result;
     }
 
     /**
-     * @return string|null Why processing failed, or null if it succeeded.
+     * @return StepResult The result of the pipeline, or an error with the exception if it threw one.
      */
-    private function run(BookingModel $booking): ?string
+    private function run(BookingModel $booking): StepResult
     {
         try {
-            $result = $this->pipeline->process($booking);
+            return $this->pipeline->process($booking);
         } catch (\Throwable $e) {
             $this->logger->error('Exception while processing a booking.', ['exception' => $e, 'booking' => $booking->id]);
 
-            return $e::class . ': ' . $e->getMessage();
+            return StepResult::error($e::class . ': ' . $e->getMessage());
         }
-
-        return $result->isError() ? (string) $result->message() : null;
     }
 
     private function discard(int $bookingId): void

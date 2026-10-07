@@ -66,3 +66,4 @@ backend:
     process_succeeded: 'Buchung %id% wurde verarbeitet.'
     process_failed: 'Buchung %id% konnte nicht verarbeitet werden: %reason%'
     process_not_failed: 'Buchung %id% wurde nicht verarbeitet, weil ihre Verarbeitung nicht fehlgeschlagen ist.'
+    process_cancelled: 'Buchung %id% wurde nicht weiter verarbeitet: %reason%'

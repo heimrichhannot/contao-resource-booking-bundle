@@ -78,7 +78,7 @@ class OptInController extends AbstractContentElementController
         $template->set('confirmed', true);
 
         // The opt-in is confirmed, so a failure keeps the booking and flags it for the editors to process it again
-        $template->set('processing_delayed', !$this->bookingProcessor->processPending($booking));
+        $template->set('processing_delayed', $this->bookingProcessor->processPending($booking)->isError());
 
         return $template->getResponse();
     }

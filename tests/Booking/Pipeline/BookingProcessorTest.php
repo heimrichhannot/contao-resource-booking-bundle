@@ -60,7 +60,7 @@ class BookingProcessorTest extends TestCase
         $booking = new FakeBookingModel(['id' => 1]);
         $processor = $this->processor(static fn (): StepResult => StepResult::error('Failed to send review request'));
 
-        $this->assertFalse($processor->processPending($booking));
+        $this->assertTrue($processor->processPending($booking)->isError());
         $this->assertTrue($booking->processingFailed);
         $this->assertSame('Failed to send review request', $booking->get('processingError'));
         $this->assertGreaterThan(0, $booking->saves);
@@ -72,7 +72,9 @@ class BookingProcessorTest extends TestCase
         $booking = new FakeBookingModel(['id' => 1]);
         $processor = $this->processor(static fn (): StepResult => throw new \RuntimeException('Mail server unavailable'));
 
-        $this->assertFalse($processor->processPending($booking));
+        $result = $processor->processPending($booking);
+        $this->assertTrue($result->isError());
+        $this->assertSame('RuntimeException: Mail server unavailable', $result->message());
         $this->assertTrue($booking->processingFailed);
         $this->assertSame('RuntimeException: Mail server unavailable', $booking->get('processingError'));
         $this->assertBookingCount(1);
@@ -87,10 +89,25 @@ class BookingProcessorTest extends TestCase
         ]);
         $processor = $this->processor(static fn (): StepResult => StepResult::wait('Waiting for review'));
 
-        $this->assertTrue($processor->processPending($booking));
+        $this->assertTrue($processor->processPending($booking)->isWait());
         $this->assertFalse($booking->processingFailed);
         $this->assertNull($booking->get('processingError'));
         $this->assertGreaterThan(0, $booking->saves);
+    }
+
+    public function testDoesNotFlagACancelledBooking(): void
+    {
+        $booking = new FakeBookingModel([
+            'id' => 1,
+            'processingFailed' => true,
+            'internalState' => \serialize(['processingError' => 'Reservation expired at 2026-10-07 12:00:00']),
+        ]);
+        $processor = $this->processor(static fn (): StepResult => StepResult::cancel('Reservation expired at 2026-10-07 12:00:00'));
+
+        $this->assertTrue($processor->processPending($booking)->isCancel());
+        $this->assertFalse($booking->processingFailed);
+        $this->assertNull($booking->get('processingError'));
+        $this->assertBookingCount(1);
     }
 
     /**
