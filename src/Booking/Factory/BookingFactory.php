@@ -97,7 +97,8 @@ readonly class BookingFactory
             $booking->end = $payload->end->getTimestamp();
             $booking->data = $serializedData;
             $booking->status = '';
-            // Reserve only temporarily until the opt-in is confirmed, even if the pipeline fails before the opt-in step
+            // The only place the reservation expiry is set: reserve only temporarily until the opt-in is
+            // confirmed, even if the pipeline fails before the opt-in step
             $booking->expiresAt = $archive->requireOptIn ? \time() + OptInStep::RESERVATION_TTL : null;
             $booking->uuid = $this->createBookingUuid($booking->row());
             $booking->save();

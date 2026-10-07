@@ -13,7 +13,7 @@ use Terminal42\NotificationCenterBundle\NotificationCenter;
 
 readonly class OptInStep implements BookingStepInterface
 {
-    /** How long an unconfirmed booking reserves its period, in seconds */
+    /** How long an unconfirmed booking reserves its period, in seconds (set by BookingFactory) */
     public const RESERVATION_TTL = 3600;
 
     private const TOKEN_PREFIX = 'huhrb';
@@ -67,8 +67,6 @@ readonly class OptInStep implements BookingStepInterface
             $this->sendOptInRequestEmail($booking, $email, $token);
 
             $booking->status = self::getName();
-            // Unconfirmed bookings only reserve their period until the opt-in expires (see BlockingBookingQuery)
-            $booking->expiresAt = \time() + self::RESERVATION_TTL;
             $booking->set('optInToken', $token->getIdentifier());
             $booking->save();
 
