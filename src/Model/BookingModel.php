@@ -88,8 +88,10 @@ class BookingModel extends Model
     /**
      * Tokens for notifications.
      *
-     * Values are encoded like Contao encodes submitted form values ("<" and insert tags), because the stored booking
-     * data is decoded and contains user input. Without this, HTML notifications would contain the visitor's raw HTML.
+     * Values are encoded exactly like Contao encodes submitted form values (HTML special characters, quotes and insert
+     * tags), because the stored booking data is decoded and contains user input. Without this, the visitor's input
+     * could add HTML to notifications or break out of an HTML attribute. Like the tokens of native Contao forms,
+     * plain-text notifications show the entities.
      */
     public function collectTokens(): array
     {
@@ -119,6 +121,6 @@ class BookingModel extends Model
             return \array_map(self::encodeTokenValue(...), $value);
         }
 
-        return \is_string($value) ? Input::encodeInput($value, InputEncodingMode::encodeLessThanSign) : $value;
+        return \is_string($value) ? Input::encodeInput($value, InputEncodingMode::encodeAll) : $value;
     }
 }
