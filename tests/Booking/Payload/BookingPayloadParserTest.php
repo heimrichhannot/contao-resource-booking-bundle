@@ -85,6 +85,23 @@ class BookingPayloadParserTest extends TestCase
         $this->assertSame([2], $payload->resourceIds);
     }
 
+    public function testChecksTheSizeLimitAfterDecodingHtmlEntities(): void
+    {
+        $ids = \range(1, 150);
+        $json = \json_encode([
+            'resources' => \array_map(static fn (int $id): array => ['id' => $id, 'quantity' => 1], $ids),
+            'start' => '2027-04-06T00:00:00.000+02:00',
+            'end' => '2027-04-08T00:00:00.000+02:00',
+        ]);
+        // How Contao submits it
+        $raw = \str_replace('"', '&#34;', $json);
+
+        $this->assertLessThanOrEqual(BookingPayloadParser::MAX_PAYLOAD_BYTES, \strlen($json));
+        $this->assertGreaterThan(BookingPayloadParser::MAX_PAYLOAD_BYTES, \strlen($raw));
+
+        $this->assertSame($ids, $this->parser->parse($raw, $ids, $this->timezone)->resourceIds);
+    }
+
     /**
      * @dataProvider invalidPayloads
      */
@@ -134,6 +151,8 @@ class BookingPayloadParserTest extends TestCase
         yield 'list instead of object' => ['[1,2,3]'];
         yield 'too deep' => [$with(['resources' => [['id' => [[1]], 'quantity' => 1]]])];
         yield 'too large' => [\str_repeat(' ', BookingPayloadParser::MAX_PAYLOAD_BYTES) . $with([])];
+        yield 'too large after decoding' => [\str_repeat('&#32;', 1000) . \str_repeat(' ', 3200) . $with([])];
+        yield 'too large to decode' => [\str_repeat(' ', BookingPayloadParser::MAX_PAYLOAD_BYTES * 5) . $with([])];
         yield 'invalid JSON' => ['{"resources":'];
         yield 'empty' => [''];
     }

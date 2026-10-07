@@ -12,8 +12,11 @@ use HeimrichHannot\ResourceBookingBundle\Exception\InvalidBookingPayloadExceptio
  */
 final readonly class BookingPayloadParser
 {
+    /** Maximum size of the JSON payload after Contao's entity encoding is decoded */
     public const MAX_PAYLOAD_BYTES = 4096;
 
+    /** Contao encodes '"' as '&#34;', so each character of a valid payload is at most 5 bytes before decoding */
+    private const MAX_ENCODED_BYTES_PER_CHAR = 5;
     private const JSON_DEPTH = 4;
     private const PAYLOAD_KEYS = ['end', 'resources', 'start'];
     private const RESOURCE_KEYS = ['id', 'quantity'];
@@ -30,12 +33,17 @@ final readonly class BookingPayloadParser
      */
     public function parse(string $raw, array $allowedResourceIds, \DateTimeZone $timezone): BookingPayload
     {
-        if ($raw === '' || \strlen($raw) > self::MAX_PAYLOAD_BYTES) {
+        // Checked before decoding too, so oversized input is not decoded at all
+        if ($raw === '' || \strlen($raw) > self::MAX_PAYLOAD_BYTES * self::MAX_ENCODED_BYTES_PER_CHAR) {
             throw new InvalidBookingPayloadException('Payload is empty or too large.');
         }
 
         // Contao encodes some characters of submitted values as HTML entities
         $json = \str_contains($raw, '&') ? \html_entity_decode($raw, \ENT_QUOTES | \ENT_HTML5, 'UTF-8') : $raw;
+
+        if (\strlen($json) > self::MAX_PAYLOAD_BYTES) {
+            throw new InvalidBookingPayloadException('Payload is empty or too large.');
+        }
 
         try {
             $payload = \json_decode($json, true, self::JSON_DEPTH, \JSON_THROW_ON_ERROR);
