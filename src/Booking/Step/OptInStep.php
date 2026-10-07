@@ -4,10 +4,10 @@ namespace HeimrichHannot\ResourceBookingBundle\Booking\Step;
 
 use Contao\CoreBundle\OptIn\OptIn;
 use Contao\CoreBundle\OptIn\OptInTokenInterface;
-use Contao\Validator;
 use HeimrichHannot\ResourceBookingBundle\Booking\StepResult;
 use HeimrichHannot\ResourceBookingBundle\Exception\OptInException;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingModel;
+use HeimrichHannot\ResourceBookingBundle\Util\EmailAddress;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Terminal42\NotificationCenterBundle\NotificationCenter;
 
@@ -59,7 +59,7 @@ readonly class OptInStep implements BookingStepInterface
 
         if (!$booking->get('optInToken'))
         {
-            if (!($email = $booking->email) || !Validator::isEmail($email)) {
+            if (!($email = $booking->email) || !EmailAddress::isSingle($email)) {
                 return StepResult::error('Invalid email address');
             }
 

@@ -2,7 +2,6 @@
 
 namespace HeimrichHannot\ResourceBookingBundle\Booking\Factory;
 
-use Contao\Validator;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use HeimrichHannot\ResourceBookingBundle\Booking\Payload\BookingPayload;
@@ -16,6 +15,7 @@ use HeimrichHannot\ResourceBookingBundle\Exception\InvalidBookingPayloadExceptio
 use HeimrichHannot\ResourceBookingBundle\Model\BookingArchiveModel;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingModel;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingResourceModel;
+use HeimrichHannot\ResourceBookingBundle\Util\EmailAddress;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
@@ -64,10 +64,7 @@ readonly class BookingFactory
         $this->assertWithinArchiveLimits($archive, $payload, $timezone);
 
         $email = \is_string($data['email'] ?? null) ? \html_entity_decode($data['email']) : '';
-        if (\strlen($email) > self::MAX_EMAIL_LENGTH
-            || !\filter_var($email, \FILTER_VALIDATE_EMAIL)
-            || !Validator::isEmail($email))
-        {
+        if (\strlen($email) > self::MAX_EMAIL_LENGTH || !EmailAddress::isSingle($email)) {
             throw new InvalidBookingPayloadException('Invalid email address.');
         }
 
