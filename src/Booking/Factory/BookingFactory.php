@@ -88,7 +88,7 @@ readonly class BookingFactory
         return $this->connection->transactional(function () use ($archive, $payload, $email, $serializedData): BookingModel {
             $this->lockResources($payload->resourceIds);
 
-            if ($this->blockingBookingQuery->hasOverlap($payload->resourceIds, $payload->start, $payload->end)) {
+            if ($this->blockingBookingQuery->hasOverlap((int) $archive->id, $payload->resourceIds, $payload->start, $payload->end)) {
                 throw new BookingUnavailableException('A requested resource is not available in the requested period.');
             }
 

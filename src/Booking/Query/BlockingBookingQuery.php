@@ -35,12 +35,13 @@ final readonly class BlockingBookingQuery
     /**
      * Whether any of the resources is blocked on at least one day between start and end (both inclusive).
      *
-     * Bookings are compared by day in the time zone of $start, the same way the calendar blocks whole days. Bookings
-     * of all booking archives are considered, since a resource cannot be in two places at once.
+     * Bookings are compared by day in the time zone of $start, the same way the calendar blocks whole days. Only
+     * bookings of the given booking archive are considered, the same ones the calendar shows (see
+     * ApiController::getBookings), since resources are bound to their archive.
      *
      * @param int[] $resourceIds
      */
-    public function hasOverlap(array $resourceIds, \DateTimeImmutable $start, \DateTimeImmutable $end): bool
+    public function hasOverlap(int $archiveId, array $resourceIds, \DateTimeImmutable $start, \DateTimeImmutable $end): bool
     {
         if (!$resourceIds) {
             return false;
@@ -57,9 +58,11 @@ final readonly class BlockingBookingQuery
             ->select('b.start', 'b.end')
             ->from(Table::BOOKING->value, 'b')
             ->innerJoin('b', Table::BOOKING_RESOURCE->value, 'br', 'br.pid = b.id')
-            ->where('br.resourceId IN (:resourceIds)')
+            ->where('b.pid = :archiveId')
+            ->andWhere('br.resourceId IN (:resourceIds)')
             ->andWhere('CAST(b.start AS SIGNED) <= :windowEnd')
             ->andWhere('CAST(b.end AS SIGNED) >= :windowStart')
+            ->setParameter('archiveId', $archiveId)
             ->setParameter('resourceIds', \array_map('\intval', $resourceIds), ArrayParameterType::INTEGER)
             ->setParameter('windowStart', $startDay->getTimestamp() - $margin)
             ->setParameter('windowEnd', $endDay->getTimestamp() + $margin);
