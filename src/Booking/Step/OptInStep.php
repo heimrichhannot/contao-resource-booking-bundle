@@ -4,14 +4,22 @@ namespace HeimrichHannot\ResourceBookingBundle\Booking\Step;
 
 use Contao\CoreBundle\OptIn\OptIn;
 use Contao\CoreBundle\OptIn\OptInTokenInterface;
-use Contao\Validator;
 use HeimrichHannot\ResourceBookingBundle\Booking\StepResult;
+use HeimrichHannot\ResourceBookingBundle\Exception\OptInException;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingModel;
+use HeimrichHannot\ResourceBookingBundle\Util\EmailAddress;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Terminal42\NotificationCenterBundle\NotificationCenter;
 
 readonly class OptInStep implements BookingStepInterface
 {
+    /** How long an unconfirmed booking reserves its period, in seconds (set by BookingFactory) */
+    public const RESERVATION_TTL = 3600;
+
+    private const TOKEN_PREFIX = 'huhrb';
+    /** Contao opt-in tokens are 24 characters: the prefix, a dash and hexadecimal characters */
+    private const TOKEN_PATTERN = '/^huhrb-[0-9a-f]{18}$/';
+
     public static function getName(): string
     {
         return 'pending:opt_in';
@@ -49,27 +57,17 @@ readonly class OptInStep implements BookingStepInterface
 
         $booking->status = self::getName();
 
-        if ($booking->get('optInToken') && $booking->get('optInExpiresAt') < time())
-        {
-            $booking->set('optInExpiresAt', null);
-            $booking->set('optInToken', null);
-        }
-
         if (!$booking->get('optInToken'))
         {
-            if (!($email = $booking->email) || !Validator::isEmail($email)) {
+            if (!($email = $booking->email) || !EmailAddress::isSingle($email)) {
                 return StepResult::error('Invalid email address');
             }
 
             $token = $this->createOptInToken($booking, $email);
             $this->sendOptInRequestEmail($booking, $email, $token);
 
-            $expiresAt = \time() + 3600; // 1 hour
-
             $booking->status = self::getName();
             $booking->set('optInToken', $token->getIdentifier());
-            $booking->set('optInExpiresAt', $expiresAt);
-            $booking->set('reservationExpiresAt', $expiresAt);
             $booking->save();
 
             return StepResult::wait('Sent opt-in request email.');
@@ -82,7 +80,7 @@ readonly class OptInStep implements BookingStepInterface
 
     private function createOptInToken(BookingModel $booking, string $email): OptInTokenInterface
     {
-        return $this->optIn->create('huhrb-', $email, [
+        return $this->optIn->create(self::TOKEN_PREFIX, $email, [
             $booking::getTable() => [ $booking->id ],
         ]);
     }
@@ -127,39 +125,57 @@ readonly class OptInStep implements BookingStepInterface
     }
 
     /**
-     * @param string $tokenId
-     * @return BookingModel
-     * @throws \InvalidArgumentException if the token ID is invalid or the token is not related to a booking
-     * @throws \RuntimeException if the token is already confirmed or the related booking is not found
+     * Confirms the opt-in of a booking.
+     *
+     * @throws OptInException with a translated message that is safe to show to the visitor
      */
     public function confirmToken(string $tokenId): BookingModel
     {
-        if (!$token = $this->optIn->find($tokenId)) {
-            throw new \InvalidArgumentException($this->trans->trans('messages.opt_in_invalid', [], 'huh_rb'));
+        if (!\preg_match(self::TOKEN_PATTERN, $tokenId) || !$token = $this->optIn->find($tokenId)) {
+            throw $this->optInException('messages.opt_in_invalid');
         }
 
         if ($token->isConfirmed()) {
-            throw new \RuntimeException($this->trans->trans('messages.opt_in_already_confirmed', [], 'huh_rb'));
+            throw $this->optInException('messages.opt_in_already_confirmed');
+        }
+
+        if (!$token->isValid()) {
+            throw $this->optInException('messages.opt_in_expired');
         }
 
         $related = $token->getRelatedRecords();
+        $bookingIds = $related[BookingModel::getTable()] ?? null;
 
-        if (!\count($related) || \key($related) !== BookingModel::getTable()) {
-            throw new \InvalidArgumentException($this->trans->trans('messages.opt_in_invalid', [], 'huh_rb'));
+        if (\count($related) !== 1 || !\is_array($bookingIds) || \count($bookingIds) !== 1) {
+            throw $this->optInException('messages.opt_in_invalid');
         }
 
-        if (!$booking = BookingModel::findById(\current($related))) {
-            throw new \RuntimeException($this->trans->trans('messages.opt_in_invalid', [], 'huh_rb'));
+        $booking = BookingModel::findByPk((int) \reset($bookingIds));
+
+        // The token must be the one currently issued for a booking that is still waiting for its opt-in
+        if (!$booking instanceof BookingModel
+            || $booking->status !== self::getName()
+            || $booking->get('optInToken') !== $token->getIdentifier())
+        {
+            throw $this->optInException('messages.opt_in_invalid');
+        }
+
+        if ($booking->expiresAt && (int) $booking->expiresAt < \time()) {
+            throw $this->optInException('messages.opt_in_expired');
         }
 
         $token->confirm();
 
         $booking->set('optedInAt', \time());
-        $booking->unset('expiresAt');
-        $booking->unset('optInExpiresAt');
+        $booking->expiresAt = null;
         $booking->unset('optInToken');
         $booking->save();
 
         return $booking;
+    }
+
+    private function optInException(string $messageKey): OptInException
+    {
+        return new OptInException($this->trans->trans($messageKey, [], 'huh_rb'));
     }
 }

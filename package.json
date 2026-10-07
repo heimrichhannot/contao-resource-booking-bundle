@@ -18,7 +18,8 @@
     "dev": "cross-env NODE_ENV=development vite build --mode development",
     "watch": "cross-env NODE_ENV=development vite build --mode development --watch",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test assets/js/main/siteTime.test.js"
   },
   "devDependencies": {
     "cross-env": "^10.1.0",

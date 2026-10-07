@@ -13,11 +13,15 @@ use Contao\CoreBundle\Twig\FragmentTemplate;
 use Contao\FormModel;
 use Contao\PageModel;
 use HeimrichHannot\ResourceBookingBundle\Booking\Factory\BookingFactory;
-use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\BookingPipeline;
+use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\BookingProcessor;
+use HeimrichHannot\ResourceBookingBundle\Booking\RateLimit\BookingRateLimiter;
+use HeimrichHannot\ResourceBookingBundle\Exception\BookingUnavailableException;
+use HeimrichHannot\ResourceBookingBundle\Exception\InvalidBookingPayloadException;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingArchiveModel;
 use HeimrichHannot\ResourceBookingBundle\Model\ResourceArchiveModel;
 use HeimrichHannot\ResourceBookingBundle\Model\ResourceModel;
 use HeimrichHannot\ResourceBookingBundle\Registry\BookingArchiveTypeRegistry;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -27,14 +31,17 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class BookingFormController extends AbstractContentElementController
 {
     public const TYPE = 'huh_rb_form';
+    public const FLASH_TYPE = 'huh_rb_error';
 
     public function __construct(
         private readonly BookingArchiveTypeRegistry $bookingArchiveTypeRegistry,
         private readonly BookingFactory             $bookingFactory,
-        private readonly BookingPipeline            $bookingPipeline,
+        private readonly BookingProcessor           $bookingProcessor,
         private readonly ContentUrlGenerator        $contentUrlGenerator,
         private readonly ScopeMatcher               $scopeMatcher,
         private readonly TranslatorInterface        $translator,
+        private readonly LoggerInterface            $logger,
+        private readonly BookingRateLimiter         $rateLimiter,
     ) {}
 
     protected function getResponse(FragmentTemplate $template, ContentModel $model, Request $request): Response
@@ -107,18 +114,26 @@ class BookingFormController extends AbstractContentElementController
 
         if ($form->validate())
         {
-            try {
-                $booking = $this->bookingFactory->createFromSubmittedData(
-                    archive: $bookingArchive,
-                    data: $form->fetchAll(),
-                    allowedResources: \array_keys($resources)
-                );
-            } catch (\RuntimeException) {
-                $this->addFlash('error', $this->translator->trans('messages.submission_invalid', [], 'huh_rb'));
-                return $this->redirect($request->getRequestUri());
+            if (!$this->rateLimiter->consumeAttempt($request->getClientIp())) {
+                return $this->rejectSubmission($request, 'messages.too_many_requests');
             }
 
-            $this->bookingPipeline->process($booking);
+            $data = $form->fetchAll();
+            $email = \is_string($data['email'] ?? null) ? $data['email'] : '';
+
+            if (!$emailSlot = $this->rateLimiter->acquireEmailSlot($email)) {
+                return $this->rejectSubmission($request, 'messages.too_many_requests');
+            }
+
+            try {
+                if ($rejection = $this->createBooking($request, $model, $bookingArchive, $data, \array_keys($resources))) {
+                    return $rejection;
+                }
+
+                $this->rateLimiter->recordBooking($email);
+            } finally {
+                $emailSlot->release();
+            }
 
             $redirectUrl = $request->getRequestUri();
 
@@ -136,6 +151,7 @@ class BookingFormController extends AbstractContentElementController
 
         $formHelper = $form->getHelperObject();
         $template->set('haste_form', $formHelper);
+        $template->set('flash_type', self::FLASH_TYPE);
 
         $template->set('booking_archive', $bookingArchive);
         $template->set('resource_archives', $resourceArchives);
@@ -164,6 +180,14 @@ class BookingFormController extends AbstractContentElementController
                 'mount' => "#{$mountId}",
                 'dataInput' => "#{$formHelper->formId} input[name=rb_data]",
             ],
+            // Only for the calendar UI, the server enforces the limits itself
+            'limits' => [
+                'min_advance_days' => (int) $bookingArchive->minAdvanceDays,
+                'max_advance_days' => (int) $bookingArchive->maxAdvanceDays,
+                'max_duration_days' => (int) $bookingArchive->maxDurationDays,
+            ],
+            // Booked days are calendar days in the server's time zone, the one BookingFactory uses
+            'timezone' => \date_default_timezone_get(),
         ];
         $template->set('js_root_data', $jsRoot);
 
@@ -172,6 +196,47 @@ class BookingFormController extends AbstractContentElementController
         $template->set('mount_template', $mountTemplate);
 
         return $template->getResponse();
+    }
+
+    /**
+     * Creates and processes the booking.
+     *
+     * @param int[] $resourceIds IDs of the resources that can be booked with this form.
+     * @return Response|null The response for a rejected submission, or null if the booking was created.
+     */
+    private function createBooking(Request $request, ContentModel $model, BookingArchiveModel $bookingArchive, array $data, array $resourceIds): ?Response
+    {
+        try {
+            $booking = $this->bookingFactory->createFromSubmittedData(
+                archive: $bookingArchive,
+                data: $data,
+                allowedResources: $resourceIds
+            );
+        } catch (BookingUnavailableException) {
+            return $this->rejectSubmission($request, 'messages.booking_unavailable');
+        } catch (InvalidBookingPayloadException $e) {
+            $this->logger->notice('Rejected booking submission: ' . $e->getMessage(), ['content_element' => $model->id]);
+            return $this->rejectSubmission($request, 'messages.submission_invalid');
+        } catch (\Throwable $e) {
+            $this->logger->error('Could not create booking.', ['exception' => $e, 'content_element' => $model->id]);
+            return $this->rejectSubmission($request, 'messages.submission_invalid');
+        }
+
+        if (!$this->bookingProcessor->processSubmitted($booking)) {
+            return $this->rejectSubmission($request, 'messages.submission_invalid');
+        }
+
+        return null;
+    }
+
+    /**
+     * Redirects back to the form and shows a message. Never exposes internal error details.
+     */
+    private function rejectSubmission(Request $request, string $messageKey): Response
+    {
+        $this->addFlash(self::FLASH_TYPE, $this->translator->trans($messageKey, [], 'huh_rb'));
+
+        return $this->redirect($request->getRequestUri());
     }
 
     protected function makeHasteForm(ContentModel $model, FormModel $formModel): Form

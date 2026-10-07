@@ -44,6 +44,12 @@
 {% endblock %}
 
 {% block enabled %}
+    {% block messages %}
+        {% for message in app.flashes(flash_type|default('huh_rb_error')) %}
+            <div class="alert alert-danger rb-message rb-message--error" role="alert">{{ message }}</div>
+        {% endfor %}
+    {% endblock %}
+
     <div {{ root_attrs }}>
 
         {% block root_start %}{% endblock %}

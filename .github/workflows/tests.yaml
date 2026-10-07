@@ -1,0 +1,64 @@
+name: Tests
+
+on:
+  pull_request:
+  # Pull requests are covered above, so pushes only trigger on the main branch (no duplicate runs)
+  push:
+    branches:
+      - main
+    paths:
+      - '**.php'
+      - 'composer.json'
+      - 'phpunit.xml.dist'
+      - '.github/workflows/tests.yaml'
+  workflow_dispatch: ~
+
+jobs:
+  phpunit:
+    name: PHPUnit (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3', '8.4', '8.5']
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring
+          tools: composer
+          coverage: none
+
+      - name: Validate composer.json
+        run: composer validate --no-check-publish
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Restore Composer cache
+        id: composer-cache-restore
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ matrix.php }}-${{ hashFiles('composer.json') }}
+          restore-keys: composer-${{ matrix.php }}-
+
+      # The bundle has no lock file, so resolve the newest dependencies for each PHP version
+      - name: Install dependencies
+        run: composer update --no-progress --prefer-dist --no-plugins --no-scripts
+
+      - name: Save Composer cache
+        if: always() && steps.composer-cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ matrix.php }}-${{ hashFiles('composer.json') }}
+
+      - name: Run PHPUnit
+        run: vendor/bin/phpunit

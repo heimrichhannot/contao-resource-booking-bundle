@@ -12,6 +12,9 @@ use HeimrichHannot\ResourceBookingBundle\Contao\Table;
  * @property string $title
  * @property string $alias
  * @property bool $published
+ * @property int $minAdvanceDays
+ * @property int $maxAdvanceDays
+ * @property int $maxDurationDays
  * @property bool $requireOptIn
  * @property bool $requireReview
  * @property int $nc_optInRequest

@@ -44,6 +44,27 @@ a query parameter
 On the opt-in page, include the provided opt-in content element to handle the opt-in process.
 On this page, you can also show your custom confirmation message.
 
+### Rate Limiting
+
+Booking submissions are rate limited per client IP address (`huh_rb_booking_client`, 5 per hour) and per email
+address (`huh_rb_booking_email`, 3 per hour). Only real attempts count: the client limit applies to submissions that
+passed form validation, the email limit to bookings that were actually created. A second submission for the same
+email address while the first one is still being processed is rejected.
+
+To change a limit, redefine the limiter in your project's `config/config.yaml`:
+
+```yaml
+framework:
+    rate_limiter:
+        huh_rb_booking_client:
+            policy: sliding_window
+            limit: 20
+            interval: '1 hour'
+```
+
+Behind a reverse proxy or load balancer, configure Symfony's trusted proxies (e.g. `TRUSTED_PROXIES` in
+`.env.local`). Otherwise all visitors share the proxy's IP address and therefore a single client limit.
+
 ## Developers
 
 You can create your custom booking archive types, which handle the display of booking resources and calendars within

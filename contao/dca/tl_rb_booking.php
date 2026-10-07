@@ -12,7 +12,7 @@ $ctable = BookingResourceModel::getTable();
 
 $dca = &$GLOBALS['TL_DCA'][$table];
 
-$dca['palettes']['default'] = '{title_legend},email,uuid;{timing_legend},start,end;{data_legend},data,_bookedResources;{status_legend},status;';
+$dca['palettes']['default'] = '{title_legend},email,uuid;{timing_legend},start,end;{data_legend},data,_bookedResources;{status_legend},status,processingFailed;';
 
 $dca['config'] = [
     'dataContainer' => DC_Table::class,
@@ -51,6 +51,10 @@ $dca['list'] = [
     'operations' => [
         'edit',
         'children',
+        'process' => [
+            'href' => 'key=process',
+            'icon' => 'sync.svg',
+        ],
         'delete',
         'show',
     ],
@@ -77,6 +81,13 @@ $dca['fields'] = [
         'eval' => ['doNotCopy' => true, 'tl_class' => 'clr w100', 'chosen' => true],
         'default' => null,
         'sql' => ['type' => 'string', 'length' => 64, 'default' => null, 'notnull' => false],
+    ],
+    'processingFailed' => [
+        'exclude' => true,
+        'filter' => true,
+        'inputType' => 'checkbox',
+        'eval' => ['doNotCopy' => true, 'tl_class' => 'clr w50'],
+        'sql' => ['type' => 'boolean', 'default' => false],
     ],
     'email' => [
         'exclude' => true,

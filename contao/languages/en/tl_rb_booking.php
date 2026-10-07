@@ -19,3 +19,5 @@ $lang['_bookedResources'] = ['Booked resources', ''];
 $lang['status_legend'] = 'Status settings';
 $lang['notifyOnStatusChange'] = ['Notify user on status change', 'Should the user be notified when you approve or reject the booking below? Applies only to "Approved" and "Rejected" statuses.'];
 $lang['status'] = ['Status', 'The current status of the booking.'];
+$lang['processingFailed'] = ['Processing failed', 'Processing of this booking failed after it was confirmed. Fix the cause and process it again with the "Process again" operation in the booking list.'];
+$lang['process'] = ['Process again', 'Process booking ID %s again'];

@@ -11,6 +11,13 @@ $lang['type'] = ['Calendar booking type', 'The type of calendar that should be u
 $lang['alias'] = ['Alias', 'The alias of the calendar.'];
 ###< title_legend ###
 
+###> limits_legend ###
+$lang['limits_legend'] = 'Booking limits';
+$lang['minAdvanceDays'] = ['Minimum advance (days)', 'Earliest start of a booking in days from today. 1 = tomorrow at the earliest, 0 = today is allowed.'];
+$lang['maxAdvanceDays'] = ['Maximum advance (days)', 'Latest end of a booking in days from today. Must be greater than the minimum advance.'];
+$lang['maxDurationDays'] = ['Maximum duration (days)', 'Maximum number of booked days, including the first and the last day.'];
+###< limits_legend ###
+
 ###> opt_in_legend ###
 $lang['opt_in_legend'] = 'Opt-in settings';
 $lang['requireOptIn'] = ['Opt-in required', 'Determines whether the user must confirm an email opt-in for the booking.'];

@@ -8,6 +8,7 @@ use Contao\DataContainer;
 use HeimrichHannot\ResourceBookingBundle\Booking\ArchiveType\BookingArchiveInterface;
 use HeimrichHannot\ResourceBookingBundle\Contao\Table;
 use HeimrichHannot\ResourceBookingBundle\Registry\BookingArchiveTypeRegistry;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 readonly class BookingArchiveListener
@@ -16,6 +17,7 @@ readonly class BookingArchiveListener
         private BookingArchiveTypeRegistry $typeRegistry,
         private FinderFactory              $finderFactory,
         private TranslatorInterface        $translator,
+        private RequestStack               $requestStack,
     ) {}
 
     #[AsCallback(Table::BOOKING_ARCHIVE->value, 'fields.type.options')]
@@ -53,6 +55,43 @@ readonly class BookingArchiveListener
             ->extension('html.twig')
             ->withVariants()
             ->asTemplateOptions();
+    }
+
+    #[AsCallback(Table::BOOKING_ARCHIVE->value, 'fields.minAdvanceDays.save')]
+    public function validateMinAdvanceDays(mixed $value, DataContainer $dc): mixed
+    {
+        $this->assertAdvanceRange((int) $value, (int) $this->submittedOrStored('maxAdvanceDays', $dc));
+
+        return $value;
+    }
+
+    #[AsCallback(Table::BOOKING_ARCHIVE->value, 'fields.maxAdvanceDays.save')]
+    public function validateMaxAdvanceDays(mixed $value, DataContainer $dc): mixed
+    {
+        $this->assertAdvanceRange((int) $this->submittedOrStored('minAdvanceDays', $dc), (int) $value);
+
+        return $value;
+    }
+
+    /**
+     * The other field's value of the same submission (also in "edit multiple" mode), or the stored one if it was not
+     * submitted.
+     */
+    private function submittedOrStored(string $field, DataContainer $dc): mixed
+    {
+        $post = $this->requestStack->getCurrentRequest()?->request;
+
+        return $post?->get($field)
+            ?? $post?->get("{$field}_{$dc->id}")
+            ?? ($dc->getCurrentRecord() ?? [])[$field]
+            ?? null;
+    }
+
+    private function assertAdvanceRange(int $minAdvanceDays, int $maxAdvanceDays): void
+    {
+        if ($maxAdvanceDays <= $minAdvanceDays) {
+            throw new \RuntimeException($this->translator->trans('backend.advance_days_invalid', [], 'huh_rb'));
+        }
     }
 
     #[AsCallback(Table::BOOKING_ARCHIVE->value, 'list.label.label')]

@@ -33,12 +33,16 @@ messages:
     submission_empty: 'Please make a selection for your booking.'
     submission_no_range: 'Please select a time range.'
     submission_invalid: 'Your booking could not be processed successfully. Please try again or contact us.'
+    too_many_requests: 'Too many booking requests. Please try again later.'
+    booking_unavailable: 'The selected period is no longer available for at least one resource. Please choose another period.'
     select_dates: 'Please select an available time range in the calendar for your booking.'
     invalid_dates: 'Please select an available time range in the calendar.'
     opt_in_success: 'You have successfully confirmed your booking.'
     opt_in_invalid: 'Invalid opt-in link.'
     opt_in_already_confirmed: 'You have already confirmed your booking.'
+    opt_in_expired: 'The opt-in link has expired. Please submit your booking request again.'
     opt_in_placeholder: 'Please confirm your booking by clicking the link in the email.'
+    opt_in_processing_delayed: 'Your booking is confirmed, but could not be processed completely yet. We will get back to you shortly.'
     mount_empty: 'No booking calendar available.'
 
 status:
@@ -54,3 +58,12 @@ ce:
         be_label: 'Displays a form to book resources'
     opt_in:
         be_label: 'Processes opt-in tokens in the URL for resource bookings'
+
+backend:
+    advance_days_invalid: 'The maximum advance must be greater than the minimum advance.'
+    email_invalid: 'Enter a single email address without quotes, commas, semicolons or spaces.'
+    needs_attention: 'Needs attention: processing failed (%reason%). Fix the cause and process the booking again.'
+    process_succeeded: 'Booking %id% was processed.'
+    process_failed: 'Booking %id% could not be processed: %reason%'
+    process_not_failed: 'Booking %id% was not processed, because its processing did not fail.'
+    process_cancelled: 'Booking %id% was not processed further: %reason%'

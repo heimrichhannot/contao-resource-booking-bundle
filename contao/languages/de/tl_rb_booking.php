@@ -19,3 +19,5 @@ $lang['_bookedResources'] = ['Gebuchte Ressourcen', ''];
 $lang['status_legend'] = 'Status-Einstellungen';
 $lang['notifyOnStatusChange'] = ['Nutzer bei Statusänderung benachrichtigen', 'Soll der Benutzer benachrichtigt werden, wenn Sie unterhalb die Freigabe erteilen oder verweigern? Gilt nur für Status "Genehmigt" und "Abgelehnt".'];
 $lang['status'] = ['Status', 'Der aktuelle Status der Buchung.'];
+$lang['processingFailed'] = ['Verarbeitung fehlgeschlagen', 'Die Verarbeitung dieser Buchung ist nach der Bestätigung fehlgeschlagen. Beheben Sie die Ursache und verarbeiten Sie die Buchung über die Operation „Erneut verarbeiten“ in der Buchungsliste erneut.'];
+$lang['process'] = ['Erneut verarbeiten', 'Buchung ID %s erneut verarbeiten'];

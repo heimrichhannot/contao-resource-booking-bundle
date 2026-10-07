@@ -2,6 +2,8 @@
 
 namespace HeimrichHannot\ResourceBookingBundle\Model;
 
+use Contao\Input;
+use Contao\InputEncodingMode;
 use Contao\Model;
 use Contao\StringUtil;
 use HeimrichHannot\ResourceBookingBundle\Contao\Table;
@@ -16,12 +18,15 @@ use HeimrichHannot\ResourceBookingBundle\Contao\Table;
  * @property string $uuid
  * @property array|string|null $data
  * @property array|string|null $internalState
- * @property int $expiresAt
+ * @property int|string|null $expiresAt Unix timestamp until which an unconfirmed booking reserves its period
+ * @property bool|string $processingFailed Whether processing failed after the opt-in, so editors have to process it again
  * @property int $start
  * @property int $end
  */
 class BookingModel extends Model
 {
+    private const RECIPIENT_TOKENS = ['email', 'booking_email'];
+
     protected static $strTable = Table::BOOKING->value;
 
     public function signature(): string
@@ -82,6 +87,17 @@ class BookingModel extends Model
         return $this;
     }
 
+    /**
+     * Tokens for notifications.
+     *
+     * Values are encoded exactly like Contao encodes submitted form values (HTML special characters, quotes and insert
+     * tags), because the stored booking data is decoded and contains user input. Without this, the visitor's input
+     * could add HTML to notifications or break out of an HTML attribute. Like the tokens of native Contao forms,
+     * plain-text notifications show the entities.
+     *
+     * The email address stays as it is, because notifications use it as recipient and the Notification Center drops
+     * encoded addresses like o&#39;brien@example.org. It is a single plain address (see EmailAddress::isSingle).
+     */
     public function collectTokens(): array
     {
         $tokens = ['email' => $this->email];
@@ -101,6 +117,23 @@ class BookingModel extends Model
             $tokens['data_' . $key] = $value;
         }
 
-        return $tokens;
+        $encoded = \array_map(self::encodeTokenValue(...), $tokens);
+
+        foreach (self::RECIPIENT_TOKENS as $key) {
+            if (\array_key_exists($key, $tokens)) {
+                $encoded[$key] = $tokens[$key];
+            }
+        }
+
+        return $encoded;
+    }
+
+    private static function encodeTokenValue(mixed $value): mixed
+    {
+        if (\is_array($value)) {
+            return \array_map(self::encodeTokenValue(...), $value);
+        }
+
+        return \is_string($value) ? Input::encodeInput($value, InputEncodingMode::encodeAll) : $value;
     }
 }

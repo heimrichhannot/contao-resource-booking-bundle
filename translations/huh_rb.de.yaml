@@ -33,12 +33,16 @@ messages:
     submission_empty: 'Bitte treffen Sie Ihre Auswahl zur Buchung.'
     submission_no_range: 'Bitte wählen Sie einen Zeitraum aus.'
     submission_invalid: 'Ihre Buchung konnte nicht erfolgreich verarbeitet werden. Bitte versuchen Sie es erneut oder kontaktieren Sie uns.'
+    too_many_requests: 'Zu viele Buchungsanfragen. Bitte versuchen Sie es später erneut.'
+    booking_unavailable: 'Der gewählte Zeitraum ist für mindestens eine Ressource nicht mehr verfügbar. Bitte wählen Sie einen anderen Zeitraum.'
     select_dates: 'Bitte wählen Sie im Kalender einen verfügbaren Zeitraum für Ihre Buchung aus.'
     invalid_dates: 'Bitte wählen Sie einen verfügbaren Zeitraum im Kalender aus.'
     opt_in_success: 'Sie haben Ihre Buchung erfolgreich bestätigt.'
     opt_in_invalid: 'Ungültiger Opt-In-Link.'
     opt_in_already_confirmed: 'Sie haben Ihre Buchung bereits bestätigt.'
+    opt_in_expired: 'Der Opt-In-Link ist abgelaufen. Bitte senden Sie Ihre Buchungsanfrage erneut.'
     opt_in_placeholder: 'Bitte bestätigen Sie Ihre Buchung durch Anklicken des Links in der E-Mail.'
+    opt_in_processing_delayed: 'Ihre Buchung ist bestätigt, konnte aber noch nicht vollständig bearbeitet werden. Wir melden uns in Kürze bei Ihnen.'
     mount_empty: 'Kein Buchungskalender verfügbar.'
 
 status:
@@ -54,3 +58,12 @@ ce:
         be_label: 'Gibt ein Formular für Ressourcenbuchung aus'
     opt_in:
         be_label: 'Verarbeitet Opt-In-Token in URLs für Ressourcenbuchungen'
+
+backend:
+    advance_days_invalid: 'Der maximale Vorlauf muss größer als der Mindestvorlauf sein.'
+    email_invalid: 'Geben Sie eine einzelne E-Mail-Adresse ohne Anführungszeichen, Kommas, Semikolons oder Leerzeichen ein.'
+    needs_attention: 'Benötigt Aufmerksamkeit: Verarbeitung fehlgeschlagen (%reason%). Beheben Sie die Ursache und verarbeiten Sie die Buchung erneut.'
+    process_succeeded: 'Buchung %id% wurde verarbeitet.'
+    process_failed: 'Buchung %id% konnte nicht verarbeitet werden: %reason%'
+    process_not_failed: 'Buchung %id% wurde nicht verarbeitet, weil ihre Verarbeitung nicht fehlgeschlagen ist.'
+    process_cancelled: 'Buchung %id% wurde nicht weiter verarbeitet: %reason%'
