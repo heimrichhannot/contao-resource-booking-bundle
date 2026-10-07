@@ -14,6 +14,7 @@ use Contao\FormModel;
 use Contao\PageModel;
 use HeimrichHannot\ResourceBookingBundle\Booking\Factory\BookingFactory;
 use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\BookingPipeline;
+use HeimrichHannot\ResourceBookingBundle\Booking\RateLimit\BookingRateLimiter;
 use HeimrichHannot\ResourceBookingBundle\Exception\BookingUnavailableException;
 use HeimrichHannot\ResourceBookingBundle\Exception\InvalidBookingPayloadException;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingArchiveModel;
@@ -21,10 +22,8 @@ use HeimrichHannot\ResourceBookingBundle\Model\ResourceArchiveModel;
 use HeimrichHannot\ResourceBookingBundle\Model\ResourceModel;
 use HeimrichHannot\ResourceBookingBundle\Registry\BookingArchiveTypeRegistry;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -42,10 +41,7 @@ class BookingFormController extends AbstractContentElementController
         private readonly ScopeMatcher               $scopeMatcher,
         private readonly TranslatorInterface        $translator,
         private readonly LoggerInterface            $logger,
-        #[Autowire(service: 'limiter.huh_rb_booking_client')]
-        private readonly RateLimiterFactory         $clientLimiter,
-        #[Autowire(service: 'limiter.huh_rb_booking_email')]
-        private readonly RateLimiterFactory         $emailLimiter,
+        private readonly BookingRateLimiter         $rateLimiter,
     ) {}
 
     protected function getResponse(FragmentTemplate $template, ContentModel $model, Request $request): Response
@@ -116,18 +112,16 @@ class BookingFormController extends AbstractContentElementController
 
         $form = $this->makeHasteForm($model, $formModel);
 
-        if ($form->isSubmitted()
-            && !$this->clientLimiter->create($request->getClientIp() ?? 'unknown')->consume()->isAccepted())
-        {
-            return $this->rejectSubmission($request, 'messages.too_many_requests');
-        }
-
         if ($form->validate())
         {
-            $data = $form->fetchAll();
-            $emailKey = \hash('sha256', \mb_strtolower(\trim(\html_entity_decode((string) ($data['email'] ?? '')))));
+            if (!$this->rateLimiter->consumeAttempt($request->getClientIp())) {
+                return $this->rejectSubmission($request, 'messages.too_many_requests');
+            }
 
-            if (!$this->emailLimiter->create($emailKey)->consume()->isAccepted()) {
+            $data = $form->fetchAll();
+            $email = \is_string($data['email'] ?? null) ? $data['email'] : '';
+
+            if (!$this->rateLimiter->canBook($email)) {
                 return $this->rejectSubmission($request, 'messages.too_many_requests');
             }
 
@@ -155,6 +149,8 @@ class BookingFormController extends AbstractContentElementController
                 $this->discardBooking((int) $booking->id);
                 return $this->rejectSubmission($request, 'messages.submission_invalid');
             }
+
+            $this->rateLimiter->recordBooking($email);
 
             $redirectUrl = $request->getRequestUri();
 
