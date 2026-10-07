@@ -48,7 +48,8 @@ On this page, you can also show your custom confirmation message.
 
 Booking submissions are rate limited per client IP address (`huh_rb_booking_client`, 5 per hour) and per email
 address (`huh_rb_booking_email`, 3 per hour). Only real attempts count: the client limit applies to submissions that
-passed form validation, the email limit to bookings that were actually created.
+passed form validation, the email limit to bookings that were actually created. A second submission for the same
+email address while the first one is still being processed is rejected.
 
 To change a limit, redefine the limiter in your project's `config/config.yaml`:
 

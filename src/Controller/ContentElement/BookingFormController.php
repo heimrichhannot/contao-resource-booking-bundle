@@ -121,36 +121,19 @@ class BookingFormController extends AbstractContentElementController
             $data = $form->fetchAll();
             $email = \is_string($data['email'] ?? null) ? $data['email'] : '';
 
-            if (!$this->rateLimiter->canBook($email)) {
+            if (!$emailSlot = $this->rateLimiter->acquireEmailSlot($email)) {
                 return $this->rejectSubmission($request, 'messages.too_many_requests');
             }
 
             try {
-                $booking = $this->bookingFactory->createFromSubmittedData(
-                    archive: $bookingArchive,
-                    data: $data,
-                    allowedResources: \array_keys($resources)
-                );
-            } catch (BookingUnavailableException) {
-                return $this->rejectSubmission($request, 'messages.booking_unavailable');
-            } catch (InvalidBookingPayloadException $e) {
-                $this->logger->notice('Rejected booking submission: ' . $e->getMessage(), ['content_element' => $model->id]);
-                return $this->rejectSubmission($request, 'messages.submission_invalid');
-            } catch (\Throwable $e) {
-                $this->logger->error('Could not create booking.', ['exception' => $e, 'content_element' => $model->id]);
-                return $this->rejectSubmission($request, 'messages.submission_invalid');
-            }
+                if ($rejection = $this->createBooking($request, $model, $bookingArchive, $data, \array_keys($resources))) {
+                    return $rejection;
+                }
 
-            try {
-                $this->bookingPipeline->process($booking);
-            } catch (\Throwable $e) {
-                // Nothing retries the pipeline later, so remove the booking and let the visitor try again
-                $this->logger->error('Could not process booking, discarding it.', ['exception' => $e, 'booking' => $booking->id]);
-                $this->discardBooking((int) $booking->id);
-                return $this->rejectSubmission($request, 'messages.submission_invalid');
+                $this->rateLimiter->recordBooking($email);
+            } finally {
+                $emailSlot->release();
             }
-
-            $this->rateLimiter->recordBooking($email);
 
             $redirectUrl = $request->getRequestUri();
 
@@ -213,6 +196,42 @@ class BookingFormController extends AbstractContentElementController
         $template->set('mount_template', $mountTemplate);
 
         return $template->getResponse();
+    }
+
+    /**
+     * Creates and processes the booking.
+     *
+     * @param int[] $resourceIds IDs of the resources that can be booked with this form.
+     * @return Response|null The response for a rejected submission, or null if the booking was created.
+     */
+    private function createBooking(Request $request, ContentModel $model, BookingArchiveModel $bookingArchive, array $data, array $resourceIds): ?Response
+    {
+        try {
+            $booking = $this->bookingFactory->createFromSubmittedData(
+                archive: $bookingArchive,
+                data: $data,
+                allowedResources: $resourceIds
+            );
+        } catch (BookingUnavailableException) {
+            return $this->rejectSubmission($request, 'messages.booking_unavailable');
+        } catch (InvalidBookingPayloadException $e) {
+            $this->logger->notice('Rejected booking submission: ' . $e->getMessage(), ['content_element' => $model->id]);
+            return $this->rejectSubmission($request, 'messages.submission_invalid');
+        } catch (\Throwable $e) {
+            $this->logger->error('Could not create booking.', ['exception' => $e, 'content_element' => $model->id]);
+            return $this->rejectSubmission($request, 'messages.submission_invalid');
+        }
+
+        try {
+            $this->bookingPipeline->process($booking);
+        } catch (\Throwable $e) {
+            // Nothing retries the pipeline later, so remove the booking and let the visitor try again
+            $this->logger->error('Could not process booking, discarding it.', ['exception' => $e, 'booking' => $booking->id]);
+            $this->discardBooking((int) $booking->id);
+            return $this->rejectSubmission($request, 'messages.submission_invalid');
+        }
+
+        return null;
     }
 
     /**

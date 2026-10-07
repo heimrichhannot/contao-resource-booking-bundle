@@ -4,6 +4,8 @@ namespace HeimrichHannot\ResourceBookingBundle\Tests\Booking\RateLimit;
 
 use HeimrichHannot\ResourceBookingBundle\Booking\RateLimit\BookingRateLimiter;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\InMemoryStore;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 
@@ -14,7 +16,9 @@ class BookingRateLimiterTest extends TestCase
         $limiter = $this->limiter(emailLimit: 3);
 
         for ($i = 0; $i < 10; ++$i) {
-            $this->assertTrue($limiter->canBook('visitor@example.org'));
+            $slot = $limiter->acquireEmailSlot('visitor@example.org');
+            $this->assertNotNull($slot);
+            $slot->release();
         }
     }
 
@@ -23,13 +27,31 @@ class BookingRateLimiterTest extends TestCase
         $limiter = $this->limiter(emailLimit: 3);
 
         for ($i = 0; $i < 3; ++$i) {
-            $this->assertTrue($limiter->canBook('visitor@example.org'));
+            $slot = $limiter->acquireEmailSlot('visitor@example.org');
+            $this->assertNotNull($slot);
             $limiter->recordBooking('visitor@example.org');
+            $slot->release();
         }
 
-        $this->assertFalse($limiter->canBook('visitor@example.org'));
-        $this->assertFalse($limiter->canBook(' Visitor@Example.org '), 'Email addresses are compared case-insensitively and trimmed');
-        $this->assertTrue($limiter->canBook('other@example.org'));
+        $this->assertNull($limiter->acquireEmailSlot('visitor@example.org'));
+        $this->assertNull($limiter->acquireEmailSlot(' Visitor@Example.org '), 'Email addresses are compared case-insensitively and trimmed');
+        $this->assertNotNull($limiter->acquireEmailSlot('other@example.org'));
+    }
+
+    public function testRejectsAParallelSubmissionForTheSameEmail(): void
+    {
+        $limiter = $this->limiter(emailLimit: 3);
+
+        // First submission passed the check and is still creating its booking
+        $slot = $limiter->acquireEmailSlot('visitor@example.org');
+        $this->assertNotNull($slot);
+
+        $this->assertNull($limiter->acquireEmailSlot(' Visitor@Example.org '), 'A parallel submission must not pass the check');
+        $this->assertNotNull($limiter->acquireEmailSlot('other@example.org'));
+
+        $slot->release();
+
+        $this->assertNotNull($limiter->acquireEmailSlot('visitor@example.org'));
     }
 
     public function testLimitsAttemptsPerClient(): void
@@ -49,6 +71,7 @@ class BookingRateLimiterTest extends TestCase
         return new BookingRateLimiter(
             new RateLimiterFactory($config('client', $clientLimit), new InMemoryStorage()),
             new RateLimiterFactory($config('email', $emailLimit), new InMemoryStorage()),
+            new LockFactory(new InMemoryStore()),
         );
     }
 }
