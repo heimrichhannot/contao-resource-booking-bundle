@@ -27,4 +27,15 @@ class BookingModelTest extends TestCase
         $this->assertSame('visitor@example.org', $tokens['email']);
         $this->assertSame(1, $tokens['booking_id']);
     }
+
+    public function testKeepsTheRecipientAddressAsItIs(): void
+    {
+        // Valid, but encoding would turn ' into &#39;, which the Notification Center drops as a recipient
+        $booking = new FakeBookingModel(['id' => 1, 'email' => "o'brien+a=b#c@example.org", 'data' => \serialize([])]);
+
+        $tokens = $booking->collectTokens();
+
+        $this->assertSame("o'brien+a=b#c@example.org", $tokens['email']);
+        $this->assertSame("o'brien+a=b#c@example.org", $tokens['booking_email']);
+    }
 }

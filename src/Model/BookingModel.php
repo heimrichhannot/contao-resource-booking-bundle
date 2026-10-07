@@ -25,6 +25,8 @@ use HeimrichHannot\ResourceBookingBundle\Contao\Table;
  */
 class BookingModel extends Model
 {
+    private const RECIPIENT_TOKENS = ['email', 'booking_email'];
+
     protected static $strTable = Table::BOOKING->value;
 
     public function signature(): string
@@ -92,6 +94,9 @@ class BookingModel extends Model
      * tags), because the stored booking data is decoded and contains user input. Without this, the visitor's input
      * could add HTML to notifications or break out of an HTML attribute. Like the tokens of native Contao forms,
      * plain-text notifications show the entities.
+     *
+     * The email address stays as it is, because notifications use it as recipient and the Notification Center drops
+     * encoded addresses like o&#39;brien@example.org. It is a single plain address (see EmailAddress::isSingle).
      */
     public function collectTokens(): array
     {
@@ -112,7 +117,15 @@ class BookingModel extends Model
             $tokens['data_' . $key] = $value;
         }
 
-        return \array_map(self::encodeTokenValue(...), $tokens);
+        $encoded = \array_map(self::encodeTokenValue(...), $tokens);
+
+        foreach (self::RECIPIENT_TOKENS as $key) {
+            if (\array_key_exists($key, $tokens)) {
+                $encoded[$key] = $tokens[$key];
+            }
+        }
+
+        return $encoded;
     }
 
     private static function encodeTokenValue(mixed $value): mixed
