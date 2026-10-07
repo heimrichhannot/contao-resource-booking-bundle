@@ -74,7 +74,9 @@ readonly class ProcessBookingOperationListener
         } elseif ($this->bookingProcessor->processPending($booking)) {
             $message->addConfirmation($this->translator->trans('backend.process_succeeded', ['%id%' => $bookingId], 'huh_rb'));
         } else {
-            $message->addError($this->translator->trans('backend.process_failed', ['%id%' => $bookingId, '%reason%' => (string) $booking->get('processingError')], 'huh_rb'));
+            // Contao prints messages as HTML, and the reason can contain an exception message
+            $reason = \htmlspecialchars((string) $booking->get('processingError'));
+            $message->addError($this->translator->trans('backend.process_failed', ['%id%' => $bookingId, '%reason%' => $reason], 'huh_rb'));
         }
 
         $this->framework->getAdapter(Controller::class)->redirect($this->framework->getAdapter(System::class)->getReferer());

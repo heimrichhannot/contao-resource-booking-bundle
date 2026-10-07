@@ -92,6 +92,17 @@ class ProcessBookingOperationListenerTest extends TestCase
         $this->assertSame([['confirmation', 'backend.process_succeeded {"%id%":1}']], $this->messages);
     }
 
+    public function testEscapesTheFailureReason(): void
+    {
+        $booking = new FakeBookingModel(['id' => 1, 'processingFailed' => '1']);
+
+        $this->processRequest($booking, StepResult::error('<b>"x"</b>'));
+
+        $this->assertSame(1, $this->runs);
+        $this->assertSame('error', $this->messages[0][0]);
+        $this->assertStringContainsString('&lt;b&gt;&quot;x&quot;&lt;\\/b&gt;', $this->messages[0][1]);
+    }
+
     private function processRequest(BookingModel $booking, StepResult $stepResult): void
     {
         $request = new Request(['key' => 'process', 'id' => (string) $booking->id, 'rt' => 'valid']);
