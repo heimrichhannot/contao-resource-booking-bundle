@@ -19,6 +19,7 @@ use HeimrichHannot\ResourceBookingBundle\Contao\Table;
  * @property array|string|null $data
  * @property array|string|null $internalState
  * @property int|string|null $expiresAt Unix timestamp until which an unconfirmed booking reserves its period
+ * @property bool|string $processingFailed Whether processing failed after the opt-in, so editors have to process it again
  * @property int $start
  * @property int $end
  */
