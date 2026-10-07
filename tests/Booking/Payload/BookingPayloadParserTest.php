@@ -46,6 +46,34 @@ class BookingPayloadParserTest extends TestCase
         $this->assertSame(1, $payload->getDurationDays());
     }
 
+    /**
+     * @dataProvider visitorOffsets
+     */
+    public function testBooksTheDayTheVisitorPickedInTheirTimeZone(string $offset): void
+    {
+        $payload = $this->parser->parse(
+            '{"resources":[{"id":1,"quantity":1}],"start":"2027-04-06T00:00:00.000' . $offset . '","end":"2027-04-08T00:00:00.000' . $offset . '"}',
+            self::ALLOWED,
+            $this->timezone,
+        );
+
+        $this->assertSame('2027-04-06 00:00:00 Europe/Berlin', $payload->start->format('Y-m-d H:i:s e'));
+        $this->assertSame('2027-04-08 00:00:00 Europe/Berlin', $payload->end->format('Y-m-d H:i:s e'));
+        $this->assertSame(3, $payload->getDurationDays());
+    }
+
+    public static function visitorOffsets(): iterable
+    {
+        yield 'Tokyo' => ['+09:00'];
+        yield 'New York' => ['-04:00'];
+        yield 'Berlin' => ['+02:00'];
+        yield 'London' => ['+00:00'];
+        yield 'India' => ['+05:30'];
+        yield 'Newfoundland' => ['-02:30'];
+        yield 'Kiribati' => ['+14:00'];
+        yield 'Baker Island' => ['-12:00'];
+    }
+
     public function testDecodesHtmlEntitiesAddedByContao(): void
     {
         $payload = $this->parser->parse(
@@ -78,7 +106,13 @@ class BookingPayloadParserTest extends TestCase
         yield 'non-existent day' => [$with(['start' => '2027-02-31T22:00:00.000Z'])];
         yield 'hour 24' => [$with(['start' => '2027-04-05T24:00:00.000Z'])];
         yield 'without milliseconds' => [$with(['start' => '2027-04-05T22:00:00Z'])];
-        yield 'offset instead of Z' => [$with(['start' => '2027-04-05T22:00:00.000+00:00'])];
+        yield 'offset without colon' => [$with(['start' => '2027-04-06T00:00:00.000+0900'])];
+        yield 'offset hours only' => [$with(['start' => '2027-04-06T00:00:00.000+09'])];
+        yield 'offset beyond 14 hours' => [$with(['start' => '2027-04-06T00:00:00.000+15:00'])];
+        yield 'offset minutes 60' => [$with(['start' => '2027-04-06T00:00:00.000+09:60'])];
+        yield 'lowercase z' => [$with(['start' => '2027-04-05T22:00:00.000z'])];
+        yield 'no zone at all' => [$with(['start' => '2027-04-06T00:00:00.000'])];
+        yield 'non-existent day with offset' => [$with(['start' => '2027-02-31T00:00:00.000+09:00'])];
         yield 'timestamp instead of string' => [$with(['start' => 1806962400])];
         yield 'end before start' => [$with(['start' => '2027-04-07T22:00:00.000Z', 'end' => '2027-04-05T22:00:00.000Z'])];
         yield 'quantity 999999999999' => [$with(['resources' => [['id' => 1, 'quantity' => 999999999999]]])];

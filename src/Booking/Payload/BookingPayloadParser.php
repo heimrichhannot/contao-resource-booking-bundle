@@ -17,13 +17,14 @@ final readonly class BookingPayloadParser
     private const JSON_DEPTH = 4;
     private const PAYLOAD_KEYS = ['end', 'resources', 'start'];
     private const RESOURCE_KEYS = ['id', 'quantity'];
-    private const DATE_PATTERN = '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/';
-    private const DATE_FORMAT = 'Y-m-d\TH:i:s.v\Z';
+    /** ISO 8601 with milliseconds and Z or the sender's UTC offset, e.g. 2027-04-06T00:00:00.000+09:00 */
+    private const DATE_PATTERN = '/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2}\.\d{3})(Z|[+-](?:0\d|1[0-4]):[0-5]\d)$/';
+    private const DATE_FORMAT = 'Y-m-d\TH:i:s.v';
 
     /**
      * @param string        $raw                The submitted form value, possibly HTML-entity-encoded by Contao.
      * @param int[]         $allowedResourceIds IDs of the resources that can be booked with this form.
-     * @param \DateTimeZone $timezone           The time zone that defines which day a submitted instant belongs to.
+     * @param \DateTimeZone $timezone           The server's time zone, in which the booked days are returned.
      *
      * @throws InvalidBookingPayloadException
      */
@@ -102,18 +103,26 @@ final readonly class BookingPayloadParser
 
     private function parseDay(mixed $value, \DateTimeZone $timezone): \DateTimeImmutable
     {
-        if (!\is_string($value) || !\preg_match(self::DATE_PATTERN, $value)) {
-            throw new InvalidBookingPayloadException('Dates must be ISO 8601 UTC timestamps with milliseconds.');
+        if (!\is_string($value) || !\preg_match(self::DATE_PATTERN, $value, $matches)) {
+            throw new InvalidBookingPayloadException('Dates must be ISO 8601 timestamps with milliseconds and a UTC offset.');
         }
 
-        $date = \DateTimeImmutable::createFromFormat('!' . self::DATE_FORMAT, $value, new \DateTimeZone('UTC'));
+        [, $day, $time, $offset] = $matches;
+        $local = "{$day}T$time";
+        $date = \DateTimeImmutable::createFromFormat('!' . self::DATE_FORMAT, $local, new \DateTimeZone($offset === 'Z' ? 'UTC' : $offset));
 
         // Formatting back rejects overflowing values like 2027-02-31 that PHP would silently roll over
-        if (!$date || $date->format(self::DATE_FORMAT) !== $value) {
+        if (!$date || $date->format(self::DATE_FORMAT) !== $local) {
             throw new InvalidBookingPayloadException('Date does not exist.');
         }
 
-        return $date->setTimezone($timezone)->setTime(0, 0);
+        // Older clients send UTC without their offset, so only the server's time zone can tell the day
+        if ($offset === 'Z') {
+            return $date->setTimezone($timezone)->setTime(0, 0);
+        }
+
+        // The booked day is the calendar day the visitor picked in their own time zone
+        return \DateTimeImmutable::createFromFormat('!Y-m-d', $day, $timezone);
     }
 
     private function hasExactKeys(array $array, array $sortedKeys): bool
