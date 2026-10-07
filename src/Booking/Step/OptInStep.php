@@ -57,12 +57,6 @@ readonly class OptInStep implements BookingStepInterface
 
         $booking->status = self::getName();
 
-        if ($booking->get('optInToken') && $booking->get('optInExpiresAt') < time())
-        {
-            $booking->set('optInExpiresAt', null);
-            $booking->set('optInToken', null);
-        }
-
         if (!$booking->get('optInToken'))
         {
             if (!($email = $booking->email) || !Validator::isEmail($email)) {
@@ -72,14 +66,10 @@ readonly class OptInStep implements BookingStepInterface
             $token = $this->createOptInToken($booking, $email);
             $this->sendOptInRequestEmail($booking, $email, $token);
 
-            $expiresAt = \time() + self::RESERVATION_TTL;
-
             $booking->status = self::getName();
             // Unconfirmed bookings only reserve their period until the opt-in expires (see BlockingBookingQuery)
-            $booking->expiresAt = $expiresAt;
+            $booking->expiresAt = \time() + self::RESERVATION_TTL;
             $booking->set('optInToken', $token->getIdentifier());
-            $booking->set('optInExpiresAt', $expiresAt);
-            $booking->set('reservationExpiresAt', $expiresAt);
             $booking->save();
 
             return StepResult::wait('Sent opt-in request email.');
@@ -180,7 +170,6 @@ readonly class OptInStep implements BookingStepInterface
 
         $booking->set('optedInAt', \time());
         $booking->expiresAt = null;
-        $booking->unset('optInExpiresAt');
         $booking->unset('optInToken');
         $booking->save();
 

@@ -33,30 +33,49 @@ class ReservationExpiryMigration extends AbstractMigration
             return false;
         }
 
-        return (bool) $this->connection->fetchOne($this->selectAffected('COUNT(*)'), [OptInStep::getName()]);
+        return (bool) $this->findExpiries();
     }
 
     public function run(): MigrationResult
     {
+        $expiries = $this->findExpiries();
+
+        foreach ($expiries as $id => $expiresAt) {
+            $this->connection->update(Table::BOOKING->value, ['expiresAt' => (string) $expiresAt], ['id' => $id]);
+        }
+
+        return $this->createResult(true, \sprintf('Set the reservation expiry of %d unconfirmed bookings.', \count($expiries)));
+    }
+
+    /**
+     * Bookings still waiting for their opt-in confirmation, with the expiry they get.
+     *
+     * Bookings whose opt-in was confirmed are left out: they must keep blocking their period, even if their pipeline did
+     * not get past the opt-in step.
+     *
+     * @return array<int, int> Expiry timestamp by booking ID
+     */
+    private function findExpiries(): array
+    {
         $rows = $this->connection->fetchAllAssociative(
-            $this->selectAffected('id, tstamp, internalState'),
+            'SELECT id, tstamp, internalState FROM ' . Table::BOOKING->value . " WHERE status = ? AND (expiresAt IS NULL OR expiresAt = '')",
             [OptInStep::getName()],
         );
+
+        $expiries = [];
 
         foreach ($rows as $row)
         {
             $state = StringUtil::deserialize($row['internalState'] ?? null, true);
-            $expiresAt = (int) ($state['reservationExpiresAt'] ?? $state['optInExpiresAt'] ?? 0)
-                ?: (int) $row['tstamp'] + OptInStep::RESERVATION_TTL;
 
-            $this->connection->update(Table::BOOKING->value, ['expiresAt' => (string) $expiresAt], ['id' => $row['id']]);
+            if (!empty($state['optedInAt'])) {
+                continue;
+            }
+
+            $expiries[(int) $row['id']] = (int) ($state['reservationExpiresAt'] ?? $state['optInExpiresAt'] ?? 0)
+                ?: (int) $row['tstamp'] + OptInStep::RESERVATION_TTL;
         }
 
-        return $this->createResult(true, \sprintf('Set the reservation expiry of %d unconfirmed bookings.', \count($rows)));
-    }
-
-    private function selectAffected(string $columns): string
-    {
-        return "SELECT $columns FROM " . Table::BOOKING->value . " WHERE status = ? AND (expiresAt IS NULL OR expiresAt = '')";
+        return $expiries;
     }
 }
