@@ -57,3 +57,6 @@ ce:
         be_label: 'Displays a form to book resources'
     opt_in:
         be_label: 'Processes opt-in tokens in the URL for resource bookings'
+
+backend:
+    advance_days_invalid: 'The maximum advance must be greater than the minimum advance.'

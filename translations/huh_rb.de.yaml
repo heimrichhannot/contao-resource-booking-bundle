@@ -57,3 +57,6 @@ ce:
         be_label: 'Gibt ein Formular für Ressourcenbuchung aus'
     opt_in:
         be_label: 'Verarbeitet Opt-In-Token in URLs für Ressourcenbuchungen'
+
+backend:
+    advance_days_invalid: 'Der maximale Vorlauf muss größer als der Mindestvorlauf sein.'
