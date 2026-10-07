@@ -13,7 +13,7 @@ use Contao\CoreBundle\Twig\FragmentTemplate;
 use Contao\FormModel;
 use Contao\PageModel;
 use HeimrichHannot\ResourceBookingBundle\Booking\Factory\BookingFactory;
-use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\BookingPipeline;
+use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\SubmittedBookingProcessor;
 use HeimrichHannot\ResourceBookingBundle\Booking\RateLimit\BookingRateLimiter;
 use HeimrichHannot\ResourceBookingBundle\Exception\BookingUnavailableException;
 use HeimrichHannot\ResourceBookingBundle\Exception\InvalidBookingPayloadException;
@@ -36,7 +36,7 @@ class BookingFormController extends AbstractContentElementController
     public function __construct(
         private readonly BookingArchiveTypeRegistry $bookingArchiveTypeRegistry,
         private readonly BookingFactory             $bookingFactory,
-        private readonly BookingPipeline            $bookingPipeline,
+        private readonly SubmittedBookingProcessor  $submittedBookingProcessor,
         private readonly ContentUrlGenerator        $contentUrlGenerator,
         private readonly ScopeMatcher               $scopeMatcher,
         private readonly TranslatorInterface        $translator,
@@ -222,12 +222,7 @@ class BookingFormController extends AbstractContentElementController
             return $this->rejectSubmission($request, 'messages.submission_invalid');
         }
 
-        try {
-            $this->bookingPipeline->process($booking);
-        } catch (\Throwable $e) {
-            // Nothing retries the pipeline later, so remove the booking and let the visitor try again
-            $this->logger->error('Could not process booking, discarding it.', ['exception' => $e, 'booking' => $booking->id]);
-            $this->discardBooking((int) $booking->id);
+        if (!$this->submittedBookingProcessor->process($booking)) {
             return $this->rejectSubmission($request, 'messages.submission_invalid');
         }
 
@@ -242,15 +237,6 @@ class BookingFormController extends AbstractContentElementController
         $this->addFlash(self::FLASH_TYPE, $this->translator->trans($messageKey, [], 'huh_rb'));
 
         return $this->redirect($request->getRequestUri());
-    }
-
-    private function discardBooking(int $bookingId): void
-    {
-        try {
-            $this->bookingFactory->discard($bookingId);
-        } catch (\Throwable $e) {
-            $this->logger->critical('Could not discard a booking that failed processing, it blocks its period.', ['exception' => $e, 'booking' => $bookingId]);
-        }
     }
 
     protected function makeHasteForm(ContentModel $model, FormModel $formModel): Form
