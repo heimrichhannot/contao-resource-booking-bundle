@@ -8,7 +8,7 @@ use Contao\CoreBundle\Framework\ContaoFramework;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use HeimrichHannot\ResourceBookingBundle\Booking\FinalState;
-use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\BookingPipeline;
+use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\BookingProcessor;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingModel;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -18,6 +18,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Contracts\Service\ServiceSubscriberInterface;
 use Symfony\Contracts\Service\ServiceSubscriberTrait;
 
+/**
+ * Processes all unfinished bookings again. A tool to debug the booking pipeline by hand, it never runs as a cron job.
+ */
 #[AsCommand(name: 'huh:rb:pipeline:process', description: 'Processes unfinished bookings')]
 class ProcessUnfinishedBookingsCommand extends Command implements ServiceSubscriberInterface
 {
@@ -35,9 +38,9 @@ class ProcessUnfinishedBookingsCommand extends Command implements ServiceSubscri
             throw new \RuntimeException('Database connection not available');
         }
 
-        /** @var BookingPipeline $pipeline */
-        if (!$pipeline = $this->container->get(BookingPipeline::class)) {
-            throw new \RuntimeException('Booking pipeline not available');
+        /** @var BookingProcessor $processor */
+        if (!$processor = $this->container->get(BookingProcessor::class)) {
+            throw new \RuntimeException('Booking processor not available');
         }
 
         $framework->initialize();
@@ -86,13 +89,12 @@ class ProcessUnfinishedBookingsCommand extends Command implements ServiceSubscri
             $io->text(\sprintf('┌[ID=%d status="%s"]', $model->id, $model->status));
             $io->text(\sprintf('├─Processing booking...'));
 
-            $result = $pipeline->process($model);
-
-            $io->text(\sprintf(
-                '├─Booking processed with result "%s": %s',
-                $result->action,
-                $result->message ? "\"$result->message\"" : '(No message provided)'
-            ));
+            // Like "Process again" in the backend, so the processingFailed flag stays in sync
+            if ($processor->processPending($model)) {
+                $io->text('├─Booking processed.');
+            } else {
+                $io->text(\sprintf('├─Processing failed, flagged the booking: "%s"', $model->get('processingError')));
+            }
             $io->text(\sprintf('└[ID=%d status="%s"]', $model->id, $model->status));
 
             $io->newLine();
@@ -109,7 +111,7 @@ class ProcessUnfinishedBookingsCommand extends Command implements ServiceSubscri
         return [
             Connection::class,
             ContaoFramework::class,
-            BookingPipeline::class,
+            BookingProcessor::class,
         ];
     }
 }
