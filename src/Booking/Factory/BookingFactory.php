@@ -119,6 +119,18 @@ readonly class BookingFactory
     }
 
     /**
+     * Deletes a booking and its resources, e.g. when it could not be processed after it was created, so it no longer
+     * blocks its period.
+     */
+    public function discard(int $bookingId): void
+    {
+        $this->connection->transactional(function () use ($bookingId): void {
+            $this->connection->delete(Table::BOOKING_RESOURCE->value, ['pid' => $bookingId]);
+            $this->connection->delete(Table::BOOKING->value, ['id' => $bookingId]);
+        });
+    }
+
+    /**
      * @throws InvalidBookingPayloadException If the period violates the limits configured in the booking archive.
      */
     private function assertWithinArchiveLimits(

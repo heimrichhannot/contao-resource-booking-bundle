@@ -150,7 +150,9 @@ class BookingFormController extends AbstractContentElementController
             try {
                 $this->bookingPipeline->process($booking);
             } catch (\Throwable $e) {
-                $this->logger->error('Could not process booking.', ['exception' => $e, 'booking' => $booking->id]);
+                // Nothing retries the pipeline later, so remove the booking and let the visitor try again
+                $this->logger->error('Could not process booking, discarding it.', ['exception' => $e, 'booking' => $booking->id]);
+                $this->discardBooking((int) $booking->id);
                 return $this->rejectSubmission($request, 'messages.submission_invalid');
             }
 
@@ -223,6 +225,15 @@ class BookingFormController extends AbstractContentElementController
         $this->addFlash(self::FLASH_TYPE, $this->translator->trans($messageKey, [], 'huh_rb'));
 
         return $this->redirect($request->getRequestUri());
+    }
+
+    private function discardBooking(int $bookingId): void
+    {
+        try {
+            $this->bookingFactory->discard($bookingId);
+        } catch (\Throwable $e) {
+            $this->logger->critical('Could not discard a booking that failed processing, it blocks its period.', ['exception' => $e, 'booking' => $bookingId]);
+        }
     }
 
     protected function makeHasteForm(ContentModel $model, FormModel $formModel): Form
