@@ -1,39 +1,36 @@
-var y = Object.defineProperty;
+var F = Object.defineProperty;
 var k = (a) => {
   throw TypeError(a);
 };
-var S = (a, e, t) => e in a ? y(a, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : a[e] = t;
-var u = (a, e, t) => S(a, typeof e != "symbol" ? e + "" : e, t), p = (a, e, t) => e.has(a) || k("Cannot " + t);
-var m = (a, e, t) => (p(a, e, "read from private field"), t ? t.call(a) : e.get(a)), D = (a, e, t) => e.has(a) ? k("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(a) : e.set(a, t), g = (a, e, t, s) => (p(a, e, "write to private field"), s ? s.call(a, t) : e.set(a, t), t);
+var S = (a, e, t) => e in a ? F(a, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : a[e] = t;
+var g = (a, e, t) => S(a, typeof e != "symbol" ? e + "" : e, t), p = (a, e, t) => e.has(a) || k("Cannot " + t);
+var m = (a, e, t) => (p(a, e, "read from private field"), t ? t.call(a) : e.get(a)), D = (a, e, t) => e.has(a) ? k("Cannot add the same private member more than once") : e instanceof WeakSet ? e.add(a) : e.set(a, t), b = (a, e, t, s) => (p(a, e, "write to private field"), s ? s.call(a, t) : e.set(a, t), t);
 /* empty css                                                         */
-import F from "../_virtual/air-datepicker-DaA9xI0A.js";
+import $ from "../_virtual/air-datepicker-DaA9xI0A.js";
 import f from "../_virtual/en-CiPB6ox8.js";
-import $ from "../_virtual/de-D4mPxDrH.js";
-function _(a) {
+import T from "../_virtual/de-D4mPxDrH.js";
+import { siteDaysFromToday as _, siteDay as v } from "../main/siteTime-DiGu9QJC.js";
+function R(a) {
   return new DOMParser().parseFromString(String(a != null ? a : ""), "text/html").documentElement.textContent;
 }
-function v(a) {
-  const e = /* @__PURE__ */ new Date();
-  return e.setDate(e.getDate() + a), e.setHours(0, 0, 0, 0), e;
-}
 var c;
-const h = class h {
+const u = class u {
   /**
    * @param {BookingForm} bookingForm
    * @param {object} options
    */
   constructor(e, t = {}) {
     D(this, c, null);
-    u(this, "bookings", []);
-    u(this, "resourceArchives", {});
-    u(this, "resources", []);
-    this.bookingForm = e, this.$mount = e.$mount, this.options = { ...h.defaults, ...t }, this.labels = this.options.labels || h.defaults.labels;
+    g(this, "bookings", []);
+    g(this, "resourceArchives", {});
+    g(this, "resources", []);
+    this.bookingForm = e, this.$mount = e.$mount, this.options = { ...u.defaults, ...t }, this.labels = this.options.labels || u.defaults.labels;
   }
   static get airLocaleEn() {
     return f;
   }
   static get airLocaleDe() {
-    return $;
+    return T;
   }
   async init() {
     this.bookingForm.isLoading = !0, await Promise.all([
@@ -53,19 +50,19 @@ const h = class h {
             <div class="rb-airdatepicker" data-rb-slot="calendar"></div>
         `;
     const t = e.querySelector(".rb-resources");
-    t.querySelector("legend").textContent = _(this.labels.resources);
+    t.querySelector("legend").textContent = R(this.labels.resources);
     for (const s of this.resources) {
       const i = `${this.$mount.id}-r${Number.parseInt(s.id)}`, n = document.createElement("label");
       n.htmlFor = i, n.className = "rb-resource-label";
-      const r = document.createElement("input");
-      r.type = "checkbox", r.className = "rb-resource-cbx", r.id = i, r.value = String(Number.parseInt(s.id));
-      const o = document.createElement("span");
-      o.textContent = _(s.title), n.append(r, o), t.append(n);
+      const o = document.createElement("input");
+      o.type = "checkbox", o.className = "rb-resource-cbx", o.id = i, o.value = String(Number.parseInt(s.id));
+      const r = document.createElement("span");
+      r.textContent = R(s.title), n.append(o, r), t.append(n);
     }
     this.$mount.appendChild(e), this.$calWrapper = e.querySelector('[data-rb-slot="calendar"]'), this.air = this.initCalendar(this.$calWrapper), this.checkboxes = e.querySelectorAll(".rb-resource-cbx"), this.initCheckboxes(this.checkboxes), this.renderPickedDates();
   }
   renderPickedDates() {
-    var i, n, r;
+    var i, n, o;
     const e = this.$mount.querySelector(".rb-picked-dates");
     if (!this.air.selectedDates || this.air.selectedDates.length !== 2) {
       e.innerHTML = ((i = this.bookingForm.getTemplate("select-dates")) == null ? void 0 : i.innerHTML) || '<div class="rb-no-dates-picked">Please select the date range you want to book in the calendar.</div>';
@@ -76,9 +73,9 @@ const h = class h {
       e.innerHTML = ((n = this.bookingForm.getTemplate("invalid-dates")) == null ? void 0 : n.innerHTML) || '<div class="rb-invalid-dates">The selected date range is not valid.</div>';
       return;
     }
-    e.innerHTML = (r = this.air.selectedDates) == null ? void 0 : r.map((o) => {
-      const l = o.getDate().toString().padStart(2, "0"), d = (o.getMonth() + 1).toString().padStart(2, "0"), b = o.getFullYear();
-      return `<div class="rb-picked-date">${l}.${d}.${b}</div>`;
+    e.innerHTML = (o = this.air.selectedDates) == null ? void 0 : o.map((r) => {
+      const l = r.getDate().toString().padStart(2, "0"), d = (r.getMonth() + 1).toString().padStart(2, "0"), h = r.getFullYear();
+      return `<div class="rb-picked-date">${l}.${d}.${h}</div>`;
     }).join("");
   }
   initCheckboxes(e) {
@@ -88,20 +85,20 @@ const h = class h {
   _onCheckboxChange(e) {
     const t = Number.parseInt(e.value);
     let s = this.bookingForm.data.isResourceUsed(t) ? this.getDisabledRanges(t) : null;
-    this.bookingForm.data.useResource(t, +!!e.checked), g(this, c, null), s && this._cal_unblockDates(s), this._cal_updateBlockedDates(), this.renderPickedDates();
+    this.bookingForm.data.useResource(t, +!!e.checked), b(this, c, null), s && this._cal_unblockDates(s), this._cal_updateBlockedDates(), this.renderPickedDates();
   }
   initCalendar(e) {
-    var o, l;
-    const { min_advance_days: t, max_advance_days: s } = this.bookingForm.config.limits, i = v(t), n = v(s), r = new F(e, {
-      locale: (l = (o = this.options.airDatepicker) == null ? void 0 : o.locale) != null ? l : f,
+    var l, d;
+    const { min_advance_days: t, max_advance_days: s } = this.bookingForm.config.limits, { timezone: i } = this.bookingForm.config, n = _(t, i), o = _(s, i), r = new $(e, {
+      locale: (d = (l = this.options.airDatepicker) == null ? void 0 : l.locale) != null ? d : f,
       inline: !0,
       range: !0,
       timepicker: !1,
-      minDate: i,
-      maxDate: n,
+      minDate: n,
+      maxDate: o,
       multipleDatesSeparator: "--",
-      onSelect: ({ datepicker: d }) => {
-        this.renderPickedDates(), this.bookingForm.data.start = d.selectedDates[0] || null, this.bookingForm.data.end = d.selectedDates[1] || null;
+      onSelect: ({ datepicker: h }) => {
+        this.renderPickedDates(), this.bookingForm.data.start = h.selectedDates[0] || null, this.bookingForm.data.end = h.selectedDates[1] || null;
       },
       onBeforeSelect: this._cal_onBeforeSelect.bind(this),
       onFocus: this._cal_onFocus.bind(this),
@@ -117,9 +114,9 @@ const h = class h {
   _cal_updateBlockedDates(e = this.air) {
     var t, s;
     for (const [i, n] of this.disabledRanges) {
-      let r = new Date(i);
-      for (; r <= n; )
-        e.disableDate(new Date(r)), r.setDate(r.getDate() + 1);
+      let o = new Date(i);
+      for (; o <= n; )
+        e.disableDate(new Date(o)), o.setDate(o.getDate() + 1);
     }
     ((t = e.selectedDates) == null ? void 0 : t.length) === 2 && !this.isRangeValid(e.selectedDates[0], e.selectedDates[1]) && (e.clear(), (s = e.$datepicker) == null || s.querySelectorAll(".-day-.-selected-").forEach((i) => i.classList.remove("-selected-")));
   }
@@ -154,8 +151,8 @@ const h = class h {
     for (const i of this.applicableBookings)
       if (!(e !== null && i.resource_id !== e))
         for (const n of i.blocked) {
-          const r = new Date(Number.parseInt(n.start) * 1e3), o = new Date(Number.parseInt(n.end) * 1e3);
-          r.setHours(0, 0, 0, 0), o.setHours(23, 59, 59, 999), t.push([r, o]);
+          const o = v(new Date(Number.parseInt(n.start) * 1e3), this.bookingForm.config.timezone), r = v(new Date(Number.parseInt(n.end) * 1e3), this.bookingForm.config.timezone);
+          r.setHours(23, 59, 59, 999), t.push([o, r]);
         }
     t.sort((i, n) => i[0] - n[0]);
     const s = [];
@@ -163,18 +160,18 @@ const h = class h {
       const n = s[s.length - 1];
       !n || i[0] > n[1] ? s.push(i) : i[1] > n[1] && (n[1] = i[1]);
     }
-    return g(this, c, s);
+    return b(this, c, s);
   }
   isDateBlocked(e) {
     return this.disabledRanges.some((t) => e >= t[0] && e <= t[1]);
   }
   isRangeValid(e, t) {
-    const s = e.getTime(), i = t.getTime(), n = Math.min(s, i), r = Math.max(s, i);
-    if (Math.round((r - n) / 864e5) + 1 > this.bookingForm.config.limits.max_duration_days)
+    const s = e.getTime(), i = t.getTime(), n = Math.min(s, i), o = Math.max(s, i);
+    if (Math.round((o - n) / 864e5) + 1 > this.bookingForm.config.limits.max_duration_days)
       return !1;
     for (const l of this.disabledRanges) {
-      const d = l[0] instanceof Date ? l[0].getTime() : l[0], b = l[1] instanceof Date ? l[1].getTime() : l[1];
-      if (n <= b && r >= d)
+      const d = l[0] instanceof Date ? l[0].getTime() : l[0], h = l[1] instanceof Date ? l[1].getTime() : l[1];
+      if (n <= h && o >= d)
         return !1;
     }
     return !0;
@@ -188,7 +185,7 @@ const h = class h {
   }
   async loadBookings() {
     const e = await this.bookingForm.fetchBookings();
-    e || this.err(), this.bookings = e.bookings || [], g(this, c, null);
+    e || this.err(), this.bookings = e.bookings || [], b(this, c, null);
   }
   err() {
     var e;
@@ -202,11 +199,11 @@ const h = class h {
    */
   static async mount(e, t = {}) {
     e.bind();
-    const s = new h(e, t);
+    const s = new u(e, t);
     return await s.init(), s;
   }
 };
-c = new WeakMap(), u(h, "defaults", {
+c = new WeakMap(), g(u, "defaults", {
   labels: {
     resources: "Resources"
   },
@@ -214,7 +211,7 @@ c = new WeakMap(), u(h, "defaults", {
     locale: f
   }
 });
-let R = h;
+let y = u;
 export {
-  R as default
+  y as default
 };

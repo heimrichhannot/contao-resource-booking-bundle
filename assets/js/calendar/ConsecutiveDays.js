@@ -2,6 +2,7 @@ import 'air-datepicker/air-datepicker.css';
 import AirDatepicker from 'air-datepicker';
 import localeEn from 'air-datepicker/locale/en';
 import localeDe from 'air-datepicker/locale/de';
+import { siteDay, siteDaysFromToday } from '../main/siteTime.js';
 
 /**
  * Decodes HTML entities of a stored text without interpreting it as markup.
@@ -10,17 +11,6 @@ import localeDe from 'air-datepicker/locale/de';
  */
 function decodeEntities(text) {
     return new DOMParser().parseFromString(String(text ?? ''), 'text/html').documentElement.textContent;
-}
-
-/**
- * @param {number} days
- * @return {Date} Midnight (local time) of the day that is the given number of days from today.
- */
-function daysFromToday(days) {
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    date.setHours(0, 0, 0, 0);
-    return date;
 }
 
 export default class ConsecutiveDays {
@@ -173,8 +163,9 @@ export default class ConsecutiveDays {
 
     initCalendar($elm) {
         const { min_advance_days, max_advance_days } = this.bookingForm.config.limits;
-        const minDate = daysFromToday(min_advance_days);
-        const maxDate = daysFromToday(max_advance_days);
+        const { timezone } = this.bookingForm.config;
+        const minDate = siteDaysFromToday(min_advance_days, timezone);
+        const maxDate = siteDaysFromToday(max_advance_days, timezone);
 
         const air = new AirDatepicker($elm, {
             locale: this.options.airDatepicker?.locale ?? localeEn,
@@ -268,11 +259,10 @@ export default class ConsecutiveDays {
             // if resourceId is specified, only consider bookings for that resource
             if (resourceId !== null && booking.resource_id !== resourceId) continue;
 
-            // Convert blocked ranges from UNIX timestamps to Date objects and normalize them to cover entire days
+            // Convert blocked ranges from UNIX timestamps to the whole days they cover in the site's time zone
             for (const blockedRange of booking.blocked) {
-                const startDay = new Date(Number.parseInt(blockedRange.start) * 1000);
-                const endDay = new Date(Number.parseInt(blockedRange.end) * 1000);
-                startDay.setHours(0, 0, 0, 0);
+                const startDay = siteDay(new Date(Number.parseInt(blockedRange.start) * 1000), this.bookingForm.config.timezone);
+                const endDay = siteDay(new Date(Number.parseInt(blockedRange.end) * 1000), this.bookingForm.config.timezone);
                 endDay.setHours(23, 59, 59, 999);
                 rangesRaw.push([startDay, endDay]);
             }

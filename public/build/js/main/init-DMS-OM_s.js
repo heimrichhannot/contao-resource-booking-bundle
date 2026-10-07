@@ -1,5 +1,5 @@
-import { parseConfig as a } from "./config-vLxpbYCU.js";
-import s from "./BookingForm-CkL1pwAI.js";
+import { parseConfig as a } from "./config-1pphN9zL.js";
+import s from "./BookingForm-BMsL_aZJ.js";
 import c from "./BookingFormRegistry-DvS5h1qd.js";
 function h(o = {}) {
   const {

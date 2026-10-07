@@ -1,3 +1,5 @@
+import { toOffsetISOString } from './siteTime.js';
+
 export default class BookingData {
     #listeners = {};
     #resources = {};
@@ -73,8 +75,9 @@ export default class BookingData {
     toJSON() {
         return {
             resources: Object.values(this.#resources),
-            start: this.#start?.toISOString(),
-            end: this.#end?.toISOString(),
+            // With the UTC offset, so the server books the day the visitor picked
+            start: this.#start ? toOffsetISOString(this.#start) : undefined,
+            end: this.#end ? toOffsetISOString(this.#end) : undefined,
         };
     }
 }

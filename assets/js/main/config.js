@@ -68,6 +68,7 @@ function assertNoUnknownKeys(obj, allowedKeys, path) {
  * @property {ref} ref
  * @property {api} api
  * @property {limits} limits
+ * @property {string} timezone IANA time zone of the site; booked days are calendar days in this time zone
  */
 
 /**
@@ -79,7 +80,7 @@ function assertNoUnknownKeys(obj, allowedKeys, path) {
 export function validateConfig(config, contextPath = "config") {
     // Root object
     assertObject(config, contextPath);
-    assertNoUnknownKeys(config, ["api", "selectors", "ref", "limits"], contextPath);
+    assertNoUnknownKeys(config, ["api", "selectors", "ref", "limits", "timezone"], contextPath);
 
     // api
     assertObject(config.api, `${contextPath}.api`);
@@ -121,6 +122,10 @@ export function validateConfig(config, contextPath = "config") {
     assertInt(config.limits.min_advance_days, `${contextPath}.limits.min_advance_days`);
     assertInt(config.limits.max_advance_days, `${contextPath}.limits.max_advance_days`);
     assertInt(config.limits.max_duration_days, `${contextPath}.limits.max_duration_days`);
+
+    // timezone
+    if (!("timezone" in config)) throw new TypeError(`${contextPath}.timezone is required`);
+    assertString(config.timezone, `${contextPath}.timezone`);
 }
 
 /**

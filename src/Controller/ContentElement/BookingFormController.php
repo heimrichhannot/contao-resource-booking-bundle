@@ -207,6 +207,8 @@ class BookingFormController extends AbstractContentElementController
                 'max_advance_days' => (int) $bookingArchive->maxAdvanceDays,
                 'max_duration_days' => (int) $bookingArchive->maxDurationDays,
             ],
+            // Booked days are calendar days in the server's time zone, the one BookingFactory uses
+            'timezone' => \date_default_timezone_get(),
         ];
         $template->set('js_root_data', $jsRoot);
 
