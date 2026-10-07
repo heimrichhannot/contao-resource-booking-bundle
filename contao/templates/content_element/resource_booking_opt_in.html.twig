@@ -4,6 +4,7 @@
 {% set confirmed = confirmed ?? false %}
 {% set error = error ?? null %}
 {% set placeholder = placeholder ?? false %}
+{% set processing_delayed = processing_delayed ?? false %}
 
 {% block content %}
     {% if confirmed %}
@@ -12,6 +13,14 @@
                 {{ 'messages.opt_in_success'|trans|raw }}
             </div>
         {% endblock %}
+
+        {% if processing_delayed %}
+            {% block processing_delayed %}
+                <div class="alert alert-info">
+                    {{ 'messages.opt_in_processing_delayed'|trans }}
+                </div>
+            {% endblock %}
+        {% endif %}
     {% endif %}
 
     {% if error %}

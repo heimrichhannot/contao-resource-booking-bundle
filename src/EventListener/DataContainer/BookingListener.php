@@ -212,10 +212,20 @@ readonly class BookingListener
             $dateLabel = "{$start} &ndash; {$end}";
         }
 
+        $attentionLabel = '';
+
+        if (!empty($row['processingFailed']))
+        {
+            $reason = StringUtil::deserialize($row['internalState'] ?? null, true)['processingError'] ?? '';
+            $attention = $this->translation->trans('backend.needs_attention', ['%reason%' => $reason], 'huh_rb');
+            $attentionLabel = '<p class="tl_red" style="margin-top: .5rem"><strong>' . \htmlspecialchars($attention) . '</strong></p>';
+        }
+
         return <<<LABEL
             <div class="cte_type {$cteType}" style="margin-bottom: .5rem">[$statusLabel]</div>
             <p style="font-variant-numeric: tabular-nums"><strong>{$dateLabel}</strong></p>
             <p style="line-height: 1.4">{$newLabel}</p>
+            {$attentionLabel}
             LABEL;
     }
 }

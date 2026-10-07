@@ -42,6 +42,7 @@ messages:
     opt_in_already_confirmed: 'You have already confirmed your booking.'
     opt_in_expired: 'The opt-in link has expired. Please submit your booking request again.'
     opt_in_placeholder: 'Please confirm your booking by clicking the link in the email.'
+    opt_in_processing_delayed: 'Your booking is confirmed, but could not be processed completely yet. We will get back to you shortly.'
     mount_empty: 'No booking calendar available.'
 
 status:
@@ -60,3 +61,6 @@ ce:
 
 backend:
     advance_days_invalid: 'The maximum advance must be greater than the minimum advance.'
+    needs_attention: 'Needs attention: processing failed (%reason%). Fix the cause and process the booking again.'
+    process_succeeded: 'Booking %id% was processed.'
+    process_failed: 'Booking %id% could not be processed: %reason%'

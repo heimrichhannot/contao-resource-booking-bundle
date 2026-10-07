@@ -13,7 +13,7 @@ use Contao\CoreBundle\Twig\FragmentTemplate;
 use Contao\FormModel;
 use Contao\PageModel;
 use HeimrichHannot\ResourceBookingBundle\Booking\Factory\BookingFactory;
-use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\SubmittedBookingProcessor;
+use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\BookingProcessor;
 use HeimrichHannot\ResourceBookingBundle\Booking\RateLimit\BookingRateLimiter;
 use HeimrichHannot\ResourceBookingBundle\Exception\BookingUnavailableException;
 use HeimrichHannot\ResourceBookingBundle\Exception\InvalidBookingPayloadException;
@@ -36,7 +36,7 @@ class BookingFormController extends AbstractContentElementController
     public function __construct(
         private readonly BookingArchiveTypeRegistry $bookingArchiveTypeRegistry,
         private readonly BookingFactory             $bookingFactory,
-        private readonly SubmittedBookingProcessor  $submittedBookingProcessor,
+        private readonly BookingProcessor           $bookingProcessor,
         private readonly ContentUrlGenerator        $contentUrlGenerator,
         private readonly ScopeMatcher               $scopeMatcher,
         private readonly TranslatorInterface        $translator,
@@ -222,7 +222,7 @@ class BookingFormController extends AbstractContentElementController
             return $this->rejectSubmission($request, 'messages.submission_invalid');
         }
 
-        if (!$this->submittedBookingProcessor->process($booking)) {
+        if (!$this->bookingProcessor->processSubmitted($booking)) {
             return $this->rejectSubmission($request, 'messages.submission_invalid');
         }
 

@@ -8,7 +8,7 @@ use Contao\CoreBundle\Controller\ContentElement\AbstractContentElementController
 use Contao\CoreBundle\DependencyInjection\Attribute\AsContentElement;
 use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\CoreBundle\Twig\FragmentTemplate;
-use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\BookingPipeline;
+use HeimrichHannot\ResourceBookingBundle\Booking\Pipeline\BookingProcessor;
 use HeimrichHannot\ResourceBookingBundle\Booking\Step\OptInStep;
 use HeimrichHannot\ResourceBookingBundle\Exception\OptInException;
 use Psr\Log\LoggerInterface;
@@ -22,7 +22,7 @@ class OptInController extends AbstractContentElementController
     public const TYPE = 'huh_rb_opt_in';
 
     public function __construct(
-        private readonly BookingPipeline     $pipeline,
+        private readonly BookingProcessor    $bookingProcessor,
         private readonly OptInStep           $optInStep,
         private readonly TranslatorInterface $translator,
         private readonly ScopeMatcher        $scopeMatcher,
@@ -77,15 +77,8 @@ class OptInController extends AbstractContentElementController
 
         $template->set('confirmed', true);
 
-        try
-        {
-            $template->set('pipeline', $this->pipeline->process($booking));
-        }
-        catch (\Throwable $e)
-        {
-            // The opt-in is confirmed, the remaining steps can be retried by the pipeline command
-            $this->logger->error('Could not process booking after opt-in.', ['exception' => $e, 'booking' => $booking->id]);
-        }
+        // The opt-in is confirmed, so a failure keeps the booking and flags it for the editors to process it again
+        $template->set('processing_delayed', !$this->bookingProcessor->processPending($booking));
 
         return $template->getResponse();
     }

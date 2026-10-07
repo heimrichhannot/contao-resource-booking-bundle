@@ -42,6 +42,7 @@ messages:
     opt_in_already_confirmed: 'Sie haben Ihre Buchung bereits bestätigt.'
     opt_in_expired: 'Der Opt-In-Link ist abgelaufen. Bitte senden Sie Ihre Buchungsanfrage erneut.'
     opt_in_placeholder: 'Bitte bestätigen Sie Ihre Buchung durch Anklicken des Links in der E-Mail.'
+    opt_in_processing_delayed: 'Ihre Buchung ist bestätigt, konnte aber noch nicht vollständig bearbeitet werden. Wir melden uns in Kürze bei Ihnen.'
     mount_empty: 'Kein Buchungskalender verfügbar.'
 
 status:
@@ -60,3 +61,6 @@ ce:
 
 backend:
     advance_days_invalid: 'Der maximale Vorlauf muss größer als der Mindestvorlauf sein.'
+    needs_attention: 'Benötigt Aufmerksamkeit: Verarbeitung fehlgeschlagen (%reason%). Beheben Sie die Ursache und verarbeiten Sie die Buchung erneut.'
+    process_succeeded: 'Buchung %id% wurde verarbeitet.'
+    process_failed: 'Buchung %id% konnte nicht verarbeitet werden: %reason%'
