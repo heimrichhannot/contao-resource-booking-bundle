@@ -61,6 +61,7 @@ ce:
 
 backend:
     advance_days_invalid: 'Der maximale Vorlauf muss größer als der Mindestvorlauf sein.'
+    email_invalid: 'Geben Sie eine einzelne E-Mail-Adresse ohne Anführungszeichen, Kommas, Semikolons oder Leerzeichen ein.'
     needs_attention: 'Benötigt Aufmerksamkeit: Verarbeitung fehlgeschlagen (%reason%). Beheben Sie die Ursache und verarbeiten Sie die Buchung erneut.'
     process_succeeded: 'Buchung %id% wurde verarbeitet.'
     process_failed: 'Buchung %id% konnte nicht verarbeitet werden: %reason%'

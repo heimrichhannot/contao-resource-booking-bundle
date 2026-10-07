@@ -61,6 +61,7 @@ ce:
 
 backend:
     advance_days_invalid: 'The maximum advance must be greater than the minimum advance.'
+    email_invalid: 'Enter a single email address without quotes, commas, semicolons or spaces.'
     needs_attention: 'Needs attention: processing failed (%reason%). Fix the cause and process the booking again.'
     process_succeeded: 'Booking %id% was processed.'
     process_failed: 'Booking %id% could not be processed: %reason%'

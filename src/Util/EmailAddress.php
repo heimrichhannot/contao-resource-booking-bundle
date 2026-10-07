@@ -16,7 +16,7 @@ final class EmailAddress
     {
         return '' !== $email
             && !\preg_match('/[\s",;<>]/', $email)
-            && false !== \filter_var($email, \FILTER_VALIDATE_EMAIL)
+            // Unlike filter_var, accepts umlauts like the form field's rgxp=email does
             && Validator::isEmail($email);
     }
 }

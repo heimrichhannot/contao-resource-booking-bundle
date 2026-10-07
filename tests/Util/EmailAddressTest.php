@@ -21,6 +21,8 @@ class EmailAddressTest extends TestCase
     {
         yield 'simple' => ['max@example.org'];
         yield 'dots and tag' => ['max.muster+tag@sub.example.de'];
+        yield 'umlaut domain' => ['max@müller.de'];
+        yield 'umlaut local part' => ['jürgen@example.org'];
     }
 
     /**
