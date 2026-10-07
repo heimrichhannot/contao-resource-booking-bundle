@@ -97,12 +97,6 @@ class ApiController extends AbstractController
         $result->free();
 
         // Only list resources of the published archives, never of unpublished ones
-        $publishedArchiveIds = $this->connection->fetchFirstColumn(
-            'SELECT id FROM ' . Table::RESOURCE_ARCHIVE->value . " WHERE published = '1' AND id IN (?)",
-            [$archiveIds],
-            [ArrayParameterType::INTEGER],
-        );
-
         $result = $this->connection->createQueryBuilder()
             ->select(\implode(',', \array_map(
                 static fn (string $key, string $value): string => "$key AS $value",
@@ -110,9 +104,9 @@ class ApiController extends AbstractController
                 $resourceFields,
             )))
             ->from(Table::RESOURCE->value)
-            ->where('pid IN (:archiveIds)')
+            ->where('pid IN (SELECT id FROM ' . Table::RESOURCE_ARCHIVE->value . " WHERE published = '1' AND id IN (:archiveIds))")
             ->andWhere("published = '1'")
-            ->setParameter('archiveIds', \array_map('\intval', $publishedArchiveIds) ?: [0], ArrayParameterType::INTEGER)
+            ->setParameter('archiveIds', $archiveIds, ArrayParameterType::INTEGER)
             ->executeQuery();
 
         $resources = $result->fetchAllAssociative();
