@@ -65,3 +65,4 @@ backend:
     needs_attention: 'Needs attention: processing failed (%reason%). Fix the cause and process the booking again.'
     process_succeeded: 'Booking %id% was processed.'
     process_failed: 'Booking %id% could not be processed: %reason%'
+    process_not_failed: 'Booking %id% was not processed, because its processing did not fail.'

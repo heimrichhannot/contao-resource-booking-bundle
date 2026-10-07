@@ -68,7 +68,10 @@ readonly class ProcessBookingOperationListener
 
         $message = $this->framework->getAdapter(Message::class);
 
-        if ($this->bookingProcessor->processPending($booking)) {
+        // Hiding the button is not enough: processing a booking that did not fail could flag an expired one
+        if (empty($booking->processingFailed)) {
+            $message->addError($this->translator->trans('backend.process_not_failed', ['%id%' => $bookingId], 'huh_rb'));
+        } elseif ($this->bookingProcessor->processPending($booking)) {
             $message->addConfirmation($this->translator->trans('backend.process_succeeded', ['%id%' => $bookingId], 'huh_rb'));
         } else {
             $message->addError($this->translator->trans('backend.process_failed', ['%id%' => $bookingId, '%reason%' => (string) $booking->get('processingError')], 'huh_rb'));
