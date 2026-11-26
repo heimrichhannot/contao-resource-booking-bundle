@@ -5,14 +5,14 @@ namespace HeimrichHannot\ResourceBookingBundle\Booking\Pipeline;
 use HeimrichHannot\ResourceBookingBundle\Booking\Step\BookingStepInterface;
 use HeimrichHannot\ResourceBookingBundle\Booking\StepResult;
 use HeimrichHannot\ResourceBookingBundle\Model\BookingModel;
-use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 readonly class BookingPipeline
 {
     private array $steps;
 
     public function __construct(
-        #[TaggedIterator('huh.resource_booking.booking_step', defaultIndexMethod: 'getName')]
+        #[AutowireIterator('huh.resource_booking.booking_step', defaultIndexMethod: 'getName')]
         private iterable $stepsIterable,
     ) {}
 
