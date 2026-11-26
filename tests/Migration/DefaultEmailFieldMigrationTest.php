@@ -33,7 +33,7 @@ class DefaultEmailFieldMigrationTest extends TestCase
         $this->assertFalse($this->migration->shouldRun());
     }
 
-    public function testRepairsOnlyUnmodifiedWizardFieldsWithoutAnExistingEmailField(): void
+    public function testRepairsOnlyUnambiguousWizardFieldsWithoutAnExistingEmailField(): void
     {
         $this->connection->executeStatement('CREATE TABLE tl_form (id INTEGER PRIMARY KEY, formType TEXT)');
         $this->connection->executeStatement(
@@ -43,7 +43,8 @@ class DefaultEmailFieldMigrationTest extends TestCase
             )",
         );
 
-        foreach ([1, 2, 3, 4, 5, 6, 7, 8] as $id) {
+        $formIds = range(1, 9);
+        foreach ($formIds as $id) {
             $this->connection->insert('tl_form', [
                 'id' => $id,
                 'formType' => $id === 2 ? '' : ResourceBookingFormType::TYPE,
@@ -52,25 +53,30 @@ class DefaultEmailFieldMigrationTest extends TestCase
 
         $legacyField = ['type' => 'email', 'name' => '', 'label' => 'Email address', 'rgxp' => '', 'mandatory' => 0];
         $overrides = [
-            3 => ['label' => 'Custom email'],
+            3 => ['label' => 'E-Mail-Adresse'],
             5 => ['invisible' => 1],
             6 => ['value' => 'preset@example.org'],
             7 => ['customTpl' => 'form_custom'],
         ];
-        foreach ([1, 2, 3, 4, 5, 6, 7, 8] as $id) {
+        foreach ($formIds as $id) {
             $this->connection->insert('tl_form_field', ['id' => $id, 'pid' => $id] + ($overrides[$id] ?? []) + $legacyField);
         }
         $this->connection->insert('tl_form_field', [
-            'id' => 9, 'pid' => 4, 'type' => 'text', 'name' => 'email', 'label' => 'Contact', 'rgxp' => 'email', 'mandatory' => 1,
+            'id' => 10, 'pid' => 4, 'type' => 'text', 'name' => 'email', 'label' => 'Contact', 'rgxp' => '', 'mandatory' => 1,
         ]);
-        $this->connection->insert('tl_form_field', ['id' => 10, 'pid' => 8] + $legacyField);
+        $this->connection->insert('tl_form_field', ['id' => 11, 'pid' => 8] + $legacyField);
+        $this->connection->insert('tl_form_field', [
+            'id' => 12, 'pid' => 9, 'type' => 'text', 'name' => 'e_mail', 'label' => 'Contact', 'rgxp' => 'email', 'mandatory' => 1,
+        ]);
 
         $this->assertTrue($this->migration->shouldRun());
         $this->migration->run();
 
         $definition = $this->connection->fetchAssociative('SELECT type, name, rgxp, mandatory FROM tl_form_field WHERE id = 1');
         $this->assertSame(['type' => 'text', 'name' => 'email', 'rgxp' => 'email', 'mandatory' => 1], $definition);
-        $this->assertSame([2, 3, 4, 5, 6, 7, 8, 10], $this->connection->fetchFirstColumn("SELECT id FROM tl_form_field WHERE type = 'email' ORDER BY id"));
+        $localized = $this->connection->fetchAssociative('SELECT type, name, label FROM tl_form_field WHERE id = 3');
+        $this->assertSame(['type' => 'text', 'name' => 'email', 'label' => 'E-Mail-Adresse'], $localized);
+        $this->assertSame([2, 4, 5, 6, 7, 8, 9, 11], $this->connection->fetchFirstColumn("SELECT id FROM tl_form_field WHERE type = 'email' ORDER BY id"));
         $this->assertFalse($this->migration->shouldRun());
     }
 }

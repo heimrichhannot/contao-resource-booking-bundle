@@ -12,7 +12,6 @@ class DefaultEmailFieldMigration extends AbstractMigration
     private const LEGACY_FIELD = [
         'type' => 'email',
         'name' => '',
-        'label' => 'Email address',
         'rgxp' => '',
         'mandatory' => 0,
         'invisible' => 0,
@@ -57,13 +56,18 @@ class DefaultEmailFieldMigration extends AbstractMigration
     /** @return list<int|string> */
     private function findLegacyFields(): array
     {
-        // Only repair an unambiguous wizard field in a form that has no other field named "email".
+        // Only repair an unambiguous wizard field in a form that has no email input.
         $query = $this->connection->createQueryBuilder()
             ->select('MIN(ff.id)')
             ->from('tl_form_field', 'ff')
             ->innerJoin('ff', 'tl_form', 'f', 'f.id = ff.pid')
             ->where('f.formType = :formType')
-            ->andWhere("NOT EXISTS (SELECT 1 FROM tl_form_field existing WHERE existing.pid = ff.pid AND existing.name = 'email')")
+            ->andWhere(<<<'SQL'
+                NOT EXISTS (
+                    SELECT 1 FROM tl_form_field existing
+                    WHERE existing.pid = ff.pid AND (existing.name = 'email' OR existing.rgxp = 'email')
+                )
+                SQL)
             ->groupBy('ff.pid')
             ->having('COUNT(*) = 1')
             ->setParameter('formType', ResourceBookingFormType::TYPE);
