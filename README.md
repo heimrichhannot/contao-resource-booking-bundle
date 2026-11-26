@@ -15,8 +15,7 @@ Install the bundle via Composer:
 composer require heimrichhannot/contao-resource-booking-bundle
 ```
 
-Requires **Contao ^5.3** and **PHP ^8.2**. Contao 5.3 uses Doctrine DBAL 3. Contao 5.7
-requires PHP 8.3 or later and supports Doctrine DBAL 3 and 4.
+Requires **Contao ^5.3** and **PHP ^8.2**.
 
 ## Features
 - Create and manage resources and their availability
