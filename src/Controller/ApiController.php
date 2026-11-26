@@ -2,6 +2,7 @@
 
 namespace HeimrichHannot\ResourceBookingBundle\Controller;
 
+use Contao\CoreBundle\Framework\ContaoFramework;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use HeimrichHannot\ResourceBookingBundle\Booking\Query\BlockingBookingQuery;
@@ -19,6 +20,7 @@ class ApiController extends AbstractController
     public function __construct(
         private readonly Connection           $connection,
         private readonly BlockingBookingQuery $blockingBookingQuery,
+        private readonly ContaoFramework      $framework,
     ) {}
 
     #[Route('/bookings/{bookingArchive}', name: 'bookings', requirements: ['bookingArchive' => '\d{1,10}'], methods: ['GET'])]
@@ -71,6 +73,8 @@ class ApiController extends AbstractController
         if (null === $archiveIds = $this->parseIds($request->query->all()['archive'] ?? null)) {
             return $this->json(['error' => 'No or invalid list provided'], Response::HTTP_BAD_REQUEST);
         }
+
+        $this->framework->initialize();
 
         if (!$archiveFields = \iterator_to_array(Table::RESOURCE_ARCHIVE->select('api'))) {
             return $this->json(['error' => 'No resource archive fields configured for API access'], Response::HTTP_INTERNAL_SERVER_ERROR);

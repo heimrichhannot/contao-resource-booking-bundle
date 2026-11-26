@@ -14,7 +14,7 @@ enum Table: string
 
     private function getDcaFields(): array
     {
-        return $GLOBALS['TL_DCA'][$this->value]['fields'];
+        return $GLOBALS['TL_DCA'][$this->value]['fields'] ?? [];
     }
 
     public function fields(string $purpose): iterable
@@ -22,7 +22,7 @@ enum Table: string
         Controller::loadDataContainer($this->value);
 
         foreach ($this->getDcaFields() as $key => $field) {
-            if ($key && \is_array($field) && $field['huh_rb'][$purpose] ?? false) {
+            if ($key && \is_array($field) && ($field['huh_rb'][$purpose] ?? false)) {
                 yield $key => $field;
             }
         }

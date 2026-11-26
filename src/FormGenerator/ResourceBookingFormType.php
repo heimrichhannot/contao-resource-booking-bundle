@@ -21,9 +21,11 @@ class ResourceBookingFormType extends AbstractFormType
     {
         return [
             'email' => [
-                'type' => 'email',
+                'type' => 'text',
+                'name' => 'email',
                 'label' => 'Email address',
-                'required' => true,
+                'rgxp' => 'email',
+                'mandatory' => true,
             ],
         ];
     }

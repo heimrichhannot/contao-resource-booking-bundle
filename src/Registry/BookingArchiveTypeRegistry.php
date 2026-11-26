@@ -3,14 +3,14 @@
 namespace HeimrichHannot\ResourceBookingBundle\Registry;
 
 use HeimrichHannot\ResourceBookingBundle\Booking\ArchiveType\BookingArchiveInterface;
-use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 class BookingArchiveTypeRegistry
 {
     private array $archiveTypes;
 
     public function __construct(
-        #[TaggedIterator('huh.rb.booking_archive_type', defaultIndexMethod: 'getName')]
+        #[AutowireIterator('huh.rb.booking_archive_type', defaultIndexMethod: 'getName')]
         private readonly iterable $archiveTypesIterable,
     ) {}
 
